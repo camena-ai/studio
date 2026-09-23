@@ -46,11 +46,12 @@ pnpm install                 # --frozen-lockfile in CI; pnpm-lock.yaml is commit
 pnpm typecheck               # turbo run typecheck (tsc in every package), then tsc for scripts/
 pnpm lint                    # biome ci
 pnpm lint:fix                # biome check --write
+pnpm format                  # biome format --write (formatting only)
 pnpm test                    # turbo run test (vitest run in every package)
 pnpm vitest                  # all projects in one process, from the root config
 pnpm e2e                     # turbo run e2e (playwright test in apps/web; no config yet)
 pnpm dev                     # turbo run dev (vite in apps/web on http://localhost:5173)
-pnpm build                   # turbo run build (vite build in apps/web; the desktop app consumes it)
+pnpm build                   # turbo run build (vite build in apps/web; the desktop app will bundle it)
 pnpm dlx shadcn@4.21.0 add <item> -c packages/ui   # vendor a registry item (see docs/design-system.md)
 pnpm licenses:check          # production dependency license allowlist (scripts/check-licenses.ts)
 pnpm reuse:lint              # REUSE 3.3 compliance via uvx
@@ -73,7 +74,7 @@ These come from the platform architecture doc (§7, §13, D16, D21, D22). Code t
 
 ### Rendering (D21, §13)
 
-- **Streamdown renders Markdown with an explicitly locked `rehype-harden` configuration.** Its defaults are permissive. A unit test asserts that an external image is blocked; keep it green.
+- **Streamdown renders Markdown with an explicitly locked `rehype-harden` configuration.** Its defaults are permissive. The change that first renders Markdown with Streamdown adds a unit test asserting that an external image is blocked; keep it green from then on.
 - **AI Elements are presentational only** and shadcn chat components handle scrolling and markers. If AI Elements cannot render Studio's message model without patching beyond their `ai` type imports, the shadcn chat components alone carry the UI (the ASSUMPTION in D21); do not adopt the AI SDK's state model to make them fit.
 - **Taint is visible and self-serviceable (§5.5, §7).** A tainted conversation shows a persistent "classified" badge that points at the message(s) carrying the taint and offers the two exits: edit that message, or fork from before it. In a tainted conversation the model picker offers only targets from the resolved classified chain. Never hide a `classified` or `error` label or a `route.blocked` outcome.
 

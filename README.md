@@ -21,7 +21,7 @@ apps/desktop    Electron shell that bundles the web build
 packages/ui     Shared UI components and vendored registry items
 ```
 
-Each package's `src/index.ts` header names the architecture sections it owns. How to contribute is described in [CONTRIBUTING.md](CONTRIBUTING.md); tooling and invariants in [CLAUDE.md](CLAUDE.md).
+The header of each package's entry file (`apps/web/src/main.tsx`, `apps/desktop/src/index.ts`, `packages/ui/src/index.ts`) names the architecture sections it owns. How to contribute is described in [CONTRIBUTING.md](CONTRIBUTING.md); tooling and invariants in [CLAUDE.md](CLAUDE.md).
 
 ## Stack
 
