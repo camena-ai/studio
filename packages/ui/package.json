@@ -11,7 +11,8 @@
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./components/ui/*": "./src/components/ui/*.tsx"
+    "./components/ui/*": "./src/components/ui/*.tsx",
+    "./styles/tokens": "./src/styles/tokens.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

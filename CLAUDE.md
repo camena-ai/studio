@@ -14,7 +14,11 @@ The public client monorepo for Studio, `camena-ai/studio`: the web SPA and the E
 
 ## Current state
 
-The repository skeleton exists; there is no production code yet. Every `src/index.ts` is an empty placeholder whose header comment names the architecture sections that package owns. The clients are milestone 8 of the build order; implementation starts once `@studio/contracts` is published from the platform repository, at which point it is added to the catalog as an exact pinned version. When a package gains real code, add its build, packaging or spike commands to this file in the same PR.
+The v0 shell exists: `apps/web` runs and renders the new-chat screen (sidebar, top bar, mark, composer, hint) in light and dark on top of `packages/ui`, which holds the design tokens, vendored shadcn/ui Radix items and Studio's own presentational components. Nothing talks to a gateway yet: the model list is a synthetic fixture and submitting clears the draft. `apps/desktop/src/index.ts` is still a placeholder whose header names the sections it owns. The clients are milestone 8 of the build order; conversation state, AI Elements and the shadcn chat components arrive once `@studio/contracts` is published from the platform repository and added to the catalog as an exact pinned version. When a package gains real code, add its build, packaging or spike commands to this file in the same PR.
+
+### Design system
+
+`packages/ui/src/styles/tokens.css` is the source of truth for colour and radius; the root `DESIGN.md` mirrors it for Claude Design and a test keeps them in agreement. `docs/design-system.md` explains how to add a shadcn item, change a token and push to Claude Design with `/design-sync`. Vendored registry paths (`packages/ui/src/components/ui/**`, `hooks/use-mobile.ts`, `styles/shadcn-variants.css`) are excluded from Biome and annotated MIT in `REUSE.toml`; keep them byte-comparable with upstream apart from import aliases. The theme preference is an atom persisted under `studio.theme`; `apps/web/index.html` applies it inline before first paint.
 
 ### Layout (D20)
 
@@ -45,8 +49,9 @@ pnpm lint:fix                # biome check --write
 pnpm test                    # turbo run test (vitest run in every package)
 pnpm vitest                  # all projects in one process, from the root config
 pnpm e2e                     # turbo run e2e (playwright test in apps/web; no config yet)
-pnpm dev                     # turbo run dev (vite in apps/web; no entry point yet)
+pnpm dev                     # turbo run dev (vite in apps/web on http://localhost:5173)
 pnpm build                   # turbo run build (vite build in apps/web; the desktop app consumes it)
+pnpm dlx shadcn@4.21.0 add <item> -c packages/ui   # vendor a registry item (see docs/design-system.md)
 pnpm licenses:check          # production dependency license allowlist (scripts/check-licenses.ts)
 pnpm reuse:lint              # REUSE 3.3 compliance via uvx
 ```

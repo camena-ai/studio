@@ -11,7 +11,7 @@ The clients are public because they are what customers run and audit. The deskto
 
 ## Status
 
-Skeleton only. The workspace layout, pinned toolchain and CI exist; every source file is an empty placeholder. The clients are milestone 8 of the build order in the platform architecture doc, so implementation starts once the gateway's contracts package is published. Commands and layout are listed in [CLAUDE.md](CLAUDE.md).
+v0 shell. The web app runs and shows the new-chat screen in light and dark, built on the design tokens and shadcn/ui components in `packages/ui`; the desktop app is still a placeholder. Nothing talks to a gateway yet. The clients are milestone 8 of the build order in the platform architecture doc, so conversation features start once the gateway's contracts package is published. Commands and layout are listed in [CLAUDE.md](CLAUDE.md); the design system is described in [DESIGN.md](DESIGN.md) and [docs/design-system.md](docs/design-system.md).
 
 ## Layout
 
