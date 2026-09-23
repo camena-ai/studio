@@ -2,10 +2,16 @@
   "name": "@studio/ui",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared Studio UI: vendored shadcn/ui and AI Elements registry items and the components built on them, consumed by the web app and therefore by the desktop app (D21, §13).",
+  "description": "Shared Studio UI: design tokens, vendored shadcn/ui registry items and the components built on them, consumed by the web app and therefore by the desktop app (D21, §13).",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/globals.css",
+    "./styles/*": "./src/styles/*",
+    "./lib/*": "./src/lib/*.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./components/ui/*": "./src/components/ui/*.tsx"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
@@ -13,14 +19,25 @@
   },
   "dependencies": {
     "@effect/atom-react": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
     "effect": "catalog:",
+    "lucide-react": "catalog:",
+    "radix-ui": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tailwindcss": "catalog:",
+    "tw-animate-css": "catalog:"
   },
   "devDependencies": {
     "@effect/vitest": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
     "jsdom": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
