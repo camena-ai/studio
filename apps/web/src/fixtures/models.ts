@@ -1,6 +1,6 @@
 /**
  * Synthetic model list for the v0 shell. Replaced by `GET /v1/models` through `AtomHttpApi`
- * once `@studio/contracts` is published. Names are invented; none is a customer or provider fact.
+ * once `@camena-ai/contracts` is published. Names are invented; none is a customer or provider fact.
  */
 import type { ModelOption } from "@studio/ui"
 
