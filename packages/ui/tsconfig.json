@@ -5,7 +5,8 @@
     "jsx": "react-jsx",
     "paths": {
       "@studio/ui/*": ["./src/*"]
-    }
+    },
+    "types": ["vite/client"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx", "vitest.config.ts"]
 }
