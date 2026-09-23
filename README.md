@@ -1,6 +1,6 @@
 # Studio
 
-This is `camena-ai/studio`, the public repository for the Studio clients: the web app and the desktop app. The gateway, worker, shared packages and infrastructure live in the private platform repository, `camena-ai/studio-platform`, which publishes the `@studio/contracts` package that these clients consume.
+This is `camena-ai/studio`, the public repository for the Studio clients: the web app and the desktop app. The gateway, worker, shared packages and infrastructure live in the private platform repository, `camena-ai/studio-platform`, which publishes the `@camena-ai/contracts` package that these clients consume.
 
 Studio is a ChatGPT-style assistant for organizations, delivered as a browser app and a desktop app, with two things a normal chat app does not have:
 
@@ -46,7 +46,7 @@ TypeScript on Effect 4 everywhere except the Electron main process, which is pla
 
 ## Relationship to the platform repository
 
-- `@studio/contracts` (Effect Schema definitions, the server-sent event union and the generated OpenAPI document) is owned by the platform repository and published to npm. The clients pin a version. The API carries a version header with a one-minor compatibility window.
+- `@camena-ai/contracts` (Effect Schema definitions, the server-sent event union and the generated OpenAPI document) is owned by the platform repository and published to GitHub Packages. The clients pin a version. The API carries a version header with a one-minor compatibility window.
 - The architecture document that governs both repositories lives in the platform repository and is the source of truth for scope and design.
 
 ## License

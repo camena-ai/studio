@@ -20,7 +20,7 @@ const placeholderRows = ["recent-1", "recent-2", "recent-3"]
 
 /**
  * The conversation sidebar. In v0 the recent list is a skeleton: conversations arrive with the
- * `AtomHttpApi` surface over `@studio/contracts` (§13).
+ * `AtomHttpApi` surface over `@camena-ai/contracts` (§13).
  */
 export function AppSidebar() {
   const [theme, setTheme] = useAtom(themePreferenceAtom)

@@ -29,7 +29,7 @@ Then:
 - if the item needs `scroll-fade` or `shimmer` utilities, copy them from `node_modules/shadcn/dist/tailwind.css` into `src/styles/shadcn-variants.css`;
 - leave the file otherwise untouched. Vendored paths are excluded from Biome and annotated in `REUSE.toml` as MIT; the only local patch so far is `checked ?? false` in `dropdown-menu.tsx` for `exactOptionalPropertyTypes`.
 
-AI Elements and the shadcn chat components are deliberately absent until `@studio/contracts` ships (see CLAUDE.md).
+AI Elements and the shadcn chat components are deliberately absent until `@camena-ai/contracts` ships (see CLAUDE.md).
 
 ## Themes
 
