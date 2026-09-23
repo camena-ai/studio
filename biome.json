@@ -34,5 +34,28 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "packages/ui/src/components/ui/**",
+        "packages/ui/src/hooks/use-mobile.ts",
+        "packages/ui/src/styles/shadcn-variants.css"
+      ],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "enabled": false
+      },
+      "assist": {
+        "enabled": false
+      }
+    }
+  ]
 }

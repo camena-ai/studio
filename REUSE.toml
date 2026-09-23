@@ -11,3 +11,27 @@ path = ["**"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Camena"
 SPDX-License-Identifier = "Apache-2.0"
+
+# shadcn/ui registry items vendored through the shadcn CLI (`pnpm dlx shadcn add`), unchanged
+# except for import-alias rewrites. Upstream: https://github.com/shadcn-ui/ui (MIT).
+[[annotations]]
+path = [
+  "packages/ui/src/components/ui/**",
+  "packages/ui/src/hooks/use-mobile.ts",
+  "packages/ui/src/styles/shadcn-variants.css",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2023 shadcn"
+SPDX-License-Identifier = "MIT"
+
+# shadcn/ui registry items vendored through the shadcn CLI (`pnpm dlx shadcn add`), unchanged
+# except for import-alias rewrites. Upstream: https://github.com/shadcn-ui/ui (MIT).
+[[annotations]]
+path = [
+  "packages/ui/src/components/ui/**",
+  "packages/ui/src/hooks/use-mobile.ts",
+  "packages/ui/src/styles/shadcn-variants.css",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2023 shadcn"
+SPDX-License-Identifier = "MIT"

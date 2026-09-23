@@ -3,7 +3,6 @@
   "compilerOptions": {
     "lib": ["es2024", "dom", "dom.iterable"],
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
       "@studio/ui/*": ["./src/*"]
     }
