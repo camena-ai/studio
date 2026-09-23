@@ -1,0 +1,80 @@
+name: Bug report
+description: Something in the Studio web or desktop app isn't working
+title: "[area] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing. Before you start:
+
+        - **Replace `[area]` in the title** with the tag matching the dropdown below, e.g. `[desktop] app won't start after update`.
+        - **Suspected security issue?** Don't file it here. [Report it privately](https://github.com/camena-ai/studio/security/advisories/new).
+        - **Never paste conversation content, attachment text, tokens or org data.** Issues are public.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which surface does this touch? Use the same tag at the start of the title.
+      options:
+        - "[web] apps/web: the Vite + React SPA"
+        - "[desktop] apps/desktop: the Electron shell, local engine, encrypted cache"
+        - "[ui] packages/ui: design tokens, shadcn/ui, shared components"
+        - "[repo] governance: CI, branch protection, tooling"
+        - "[docs] docs, design, README"
+        - "not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The observable failure. Paste the real error text rather than paraphrasing it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. pnpm dev
+        2. Open http://localhost:5173
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The app version, or the commit SHA if you run from source.
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: OS and browser
+      description: For the desktop app, the OS and architecture; for the web app, the browser too.
+      placeholder: "macOS 26, arm64, Safari 26"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Console output or stack traces. Scrub tokens, message content and org data first.
+      render: shell
+    validations:
+      required: false
