@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
+.turbo/
+
+# Electron packaging (electron-builder, pnpm deploy)
+release/
+deploy/
+
+# Local models — never commit weights
+*.gguf
+*.safetensors
+models/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local dev data
+.data/
+*.db
+*.sqlite
+
+# Test and coverage
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/worktrees/
+.claude/settings.local.json

@@ -1,0 +1,13 @@
+# REUSE 3.3 aggregate annotation instead of per-file headers (platform architecture doc, D20 and §12.1).
+# Vendored third-party files (shadcn/ui and AI Elements registry items included) get their own
+# [[annotations]] entry with the upstream SPDX id; the CI license allowlist covers npm dependencies.
+version = 1
+SPDX-PackageName = "studio"
+SPDX-PackageSupplier = "Camena"
+SPDX-PackageDownloadLocation = "https://github.com/camena-ai/studio"
+
+[[annotations]]
+path = ["**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Camena"
+SPDX-License-Identifier = "Apache-2.0"
