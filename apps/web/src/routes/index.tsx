@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { EmptyState } from "../components/empty-state.tsx"
 
-export const Route = createFileRoute("/")({
-  component: () => <main className="p-6">Studio</main>,
-})
+export const Route = createFileRoute("/")({ component: EmptyState })
