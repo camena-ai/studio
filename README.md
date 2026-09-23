@@ -13,6 +13,23 @@ The clients are public because they are what customers run and audit. The deskto
 
 v0 shell. The web app runs and shows the new-chat screen in light and dark, built on the design tokens and shadcn/ui components in `packages/ui`; the desktop app is still a placeholder. Nothing talks to a gateway yet. The clients are milestone 8 of the build order in the platform architecture doc, so conversation features start once the gateway's contracts package is published. Commands and layout are listed in [CLAUDE.md](CLAUDE.md); the design system is described in [DESIGN.md](DESIGN.md) and [docs/design-system.md](docs/design-system.md).
 
+## Running it
+
+You need **Node 24** (see `.node-version`) and **pnpm** (the version in `packageManager` in `package.json`; `corepack enable` picks it up).
+
+fnm, Volta and mise read `.node-version`; nvm does not, so run `nvm install 24 && nvm use 24` first. On an older Node, `pnpm install` stops with `ERR_PNPM_UNSUPPORTED_ENGINE`.
+
+```bash
+git clone https://github.com/camena-ai/studio.git
+cd studio
+pnpm install
+pnpm dev
+```
+
+`pnpm dev` serves the web app on http://localhost:5173. It shows the new-chat screen with a synthetic model list; submitting a prompt only clears the draft, because nothing talks to a gateway yet. Set `ELECTRON_SKIP_BINARY_DOWNLOAD=1` before installing if you don't need the Electron binary; the desktop app has nothing to run yet.
+
+`pnpm build` writes a production build of the web app, and `pnpm lint`, `pnpm typecheck` and `pnpm test` run the checks CI requires. The full command list is in [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md).
+
 ## Layout
 
 ```
@@ -21,7 +38,7 @@ apps/desktop    Electron shell that bundles the web build
 packages/ui     Shared UI components and vendored registry items
 ```
 
-Each package's `src/index.ts` header names the architecture sections it owns. How to contribute is described in [CONTRIBUTING.md](CONTRIBUTING.md); tooling and invariants in [CLAUDE.md](CLAUDE.md).
+The header of each package's entry file (`apps/web/src/main.tsx`, `apps/desktop/src/index.ts`, `packages/ui/src/index.ts`) names the architecture sections it owns. How to contribute is described in [CONTRIBUTING.md](CONTRIBUTING.md); tooling and invariants in [CLAUDE.md](CLAUDE.md).
 
 ## Stack
 
