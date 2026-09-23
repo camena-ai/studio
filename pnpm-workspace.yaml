@@ -1,0 +1,50 @@
+# pnpm workspaces + Turborepo (D20). Every dependency version is exact and lives in the catalog
+# below; bump it there, one commit per upgrade. The hoisted linker is required by electron-builder.
+packages:
+  - apps/*
+  - packages/*
+
+nodeLinker: hoisted
+saveExact: true
+engineStrict: true
+
+# pnpm runs no lifecycle scripts unless the package is allowed here (pnpm 12 fails the install
+# on any undecided script). Electron's postinstall downloads its binary; esbuild's installs the
+# platform binary for Vite. electron-winstaller fetches Squirrel.Windows tooling that only the
+# Windows packaging step needs, so it is explicitly disallowed. turbo's postinstall picks its
+# platform binary.
+allowBuilds:
+  electron: true
+  esbuild: true
+  turbo: true
+  electron-winstaller: false
+
+catalog:
+  # Effect: `effect` and `@effect/atom-react` must stay on the same exact version (D22, §12.1).
+  effect: 4.0.0-rc.117
+  "@effect/atom-react": 4.0.0-rc.117
+  "@effect/vitest": 4.0.0-rc.117
+  # Web (D21)
+  react: 19.3.0
+  react-dom: 19.3.0
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0
+  "@tanstack/react-router": 1.170.38
+  "@tanstack/router-plugin": 1.168.40
+  streamdown: 2.6.0
+  tailwindcss: 4.3.3
+  "@tailwindcss/vite": 4.3.3
+  vite: 8.3.0
+  "@vitejs/plugin-react": 6.1.1
+  jsdom: 30.1.1
+  "@playwright/test": 1.63.0
+  # Desktop (D16). node-llama-cpp and better-sqlite3-multiple-ciphers join with the milestone-8 spike.
+  electron: 44.4.3
+  electron-builder: 26.15.3
+  electron-updater: 6.8.9
+  # Tooling (D20). Versions must be at least 24 h old: pnpm's default minimumReleaseAge applies.
+  typescript: 7.0.2
+  "@biomejs/biome": 2.5.14
+  turbo: 2.11.2
+  vitest: 5.0.1
+  "@types/node": 26.6.2

@@ -1,0 +1,32 @@
+{
+  "name": "studio",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Studio client monorepo: the web SPA, the Electron desktop app and shared UI (D20, D21, D16).",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": "^24.0.0",
+    "pnpm": ">=12.0.0"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck && tsc -p tsconfig.json",
+    "test": "turbo run test",
+    "e2e": "turbo run e2e",
+    "lint": "biome ci .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "licenses:check": "node scripts/check-licenses.ts",
+    "reuse:lint": "uvx --from 'reuse[charset-normalizer]' reuse lint"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@types/node": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

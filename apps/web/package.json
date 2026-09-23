@@ -1,0 +1,37 @@
+{
+  "name": "@studio/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Studio web app: Vite + React SPA on TanStack Router with all state on Effect Atom, shadcn/ui and its chat components, AI Elements as presentational components and Streamdown with a locked harden config (D21, D22, §13).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@effect/atom-react": "catalog:",
+    "@studio/ui": "workspace:*",
+    "@tanstack/react-router": "catalog:",
+    "effect": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "streamdown": "catalog:",
+    "tailwindcss": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/vitest": "catalog:",
+    "@playwright/test": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/router-plugin": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "jsdom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

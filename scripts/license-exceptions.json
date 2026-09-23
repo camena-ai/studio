@@ -1,0 +1,8 @@
+{
+  "_comment": "Package name -> reason a reviewed package outside the allowlist is accepted. Every entry is a review decision; record who accepted it and why.",
+  "exceptions": {
+    "argparse": "Python-2.0 (PSF, OSI-approved, permissive, notice-only). Transitive via electron-updater -> js-yaml. Accepted 2026-09-23 pending confirmation of the allowlist wording in D20.",
+    "isbot": "Unlicense (public-domain dedication). Transitive via @tanstack/react-router. Accepted 2026-09-23 pending confirmation of the allowlist wording in D20.",
+    "sax": "BlueOak-1.0.0 (OSI-approved, permissive, notice-only). Transitive via electron-updater -> builder-util-runtime. Accepted 2026-09-23 pending confirmation of the allowlist wording in D20."
+  }
+}
