@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/camena-ai/studio/security/advisories/new
+    about: Report privately through GitHub. Please don't open a public issue for a suspected vulnerability.
+  - name: Contributing guide
+    url: https://github.com/camena-ai/studio/blob/main/CONTRIBUTING.md
+    about: Dev setup, the CI gate, and how issues and PRs are expected to look.
