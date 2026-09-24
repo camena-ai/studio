@@ -10,6 +10,10 @@ saveExact: true
 # fails in CI and prompts in a terminal. pnpm's built-in default is non-strict and silently
 # appends such versions to minimumReleaseAgeExclude instead. Never add exclusions; wait.
 minimumReleaseAge: 1440
+# TEMPORARY: @camena-ai/contracts 0.1.0 is younger than 24 h until 2026-09-25 06:19:21 UTC.
+# Revert this commit after that time and before the pull request merges.
+minimumReleaseAgeExclude:
+  - "@camena-ai/contracts@0.1.0"
 engineStrict: true
 
 # pnpm runs no lifecycle scripts unless the package is allowed here (pnpm 12 fails the install
