@@ -11,7 +11,7 @@ The clients are public because they are what customers run and audit. The deskto
 
 ## Status
 
-v0 shell. The web app runs and shows the new-chat screen in light and dark, built on the design tokens and shadcn/ui components in `packages/ui`; the desktop app is still a placeholder. Nothing talks to a gateway yet. The clients are milestone 8 of the build order in the platform architecture doc, so conversation features start once the gateway's contracts package is published. Commands and layout are listed in [CLAUDE.md](CLAUDE.md); the design system is described in [DESIGN.md](DESIGN.md) and [docs/design-system.md](docs/design-system.md).
+v0 shell. The web app runs and shows the new-chat screen in light and dark, built on the design tokens and shadcn/ui components in `packages/ui`; the desktop app is still a placeholder. The web app now consumes `@camena-ai/contracts` 0.1.0 and has a typed client for the gateway's health endpoint, which nothing renders yet, so it is plumbing rather than a feature; the model list is still a synthetic fixture. The clients are milestone 8 of the build order in the platform architecture doc, so conversation features arrive with the turn endpoints of later contract versions. Commands and layout are listed in [CLAUDE.md](CLAUDE.md); the design system is described in [DESIGN.md](DESIGN.md) and [docs/design-system.md](docs/design-system.md).
 
 ## Running it
 
