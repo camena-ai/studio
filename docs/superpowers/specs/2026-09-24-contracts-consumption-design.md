@@ -40,12 +40,21 @@ header (2026-09-24):
 A committed `.npmrc` holding only the scope route would work too. It would put the route in a
 second file for no gain, so this design doesn't use one.
 
-### 2. No release-age exclusion
+### 2. No release-age exclusion, and the age rule is made strict
 
-`0.1.0` was published 2026-09-24 06:19 UTC. pnpm's default `minimumReleaseAge` (24 h) applies,
-as CLAUDE.md requires, and no `minimumReleaseAgeExclude` entry is added. The committed install,
-the lockfile and the PR land after 2026-09-25 06:19 UTC. Prototypes before that run in a scratch
-directory with the exclusion set locally, never in the repository.
+`0.1.0` was published 2026-09-24 06:19:21 UTC. No `minimumReleaseAgeExclude` entry is added. The
+committed install, the lockfile and the PR land after 2026-09-25 06:19 UTC.
+
+pnpm 12.5.1's built-in 24 h default is **non-strict**. A plain `pnpm install` on 2026-09-24
+succeeded and silently appended `'@camena-ai/contracts@0.1.0'` to `minimumReleaseAgeExclude` in
+`pnpm-workspace.yaml`. Setting `minimumReleaseAge: 1440` explicitly makes pnpm strict
+(`minimumReleaseAgeStrict` defaults to `true` when the age is configured). A non-interactive
+install then fails with "1 version does not meet the minimumReleaseAge constraint", and an
+interactive one prompts. So `pnpm-workspace.yaml` sets `minimumReleaseAge: 1440`, and CLAUDE.md
+stops describing the default as if it enforced anything.
+
+Prototypes before the cutoff run in a scratch directory with `--config.minimum-release-age=0`,
+never in the repository.
 
 Why: the cooldown also protects against a leaked publish credential in the platform repository.
 The cost is that every contracts bump waits a day before the client can adopt it. The gateway
@@ -62,6 +71,9 @@ client side is acceptable.
 The package's `bun` and `@studio/source` export conditions are not enabled here. The client
 resolves `types` → `dist/*.d.ts` and `default` → `dist/*.js`. `tsconfig.base.json` sets no
 `customConditions`, and Vite's defaults don't include those conditions.
+
+The published tarball ships `src/` as well. With it renamed away in a scratch install, Vitest,
+`tsc` and `vite build` still passed, so nothing here resolves the source.
 
 ### 4. `apps/web/src/api/studio-api.ts`
 
@@ -111,8 +123,24 @@ two things:
 - every resolved `effect@<version>` key has the catalog version, and there is only one version;
 - the `@camena-ai/contracts@0.1.0` snapshot resolves its `effect` peer to that version.
 
-The scratch install with a tarball built from the contracts source had one `effect@4.0.0-rc.117`
-package entry and one `node_modules/effect`. The registry install re-checks this.
+The scratch install from GitHub Packages resolves as follows:
+
+```yaml
+packages:
+  '@camena-ai/contracts@0.1.0':
+    resolution: {integrity: sha512-+FLQ…, tarball: https://npm.pkg.github.com/download/@camena-ai/contracts/0.1.0/82d5…}
+    peerDependencies:
+      effect: 4.0.0-rc.117
+  effect@4.0.0-rc.117: …
+snapshots:
+  '@camena-ai/contracts@0.1.0(effect@4.0.0-rc.117)':
+    dependencies:
+      effect: 4.0.0-rc.117
+  effect@4.0.0-rc.117: {}
+```
+
+That is one `effect` key in each section, and one `node_modules/effect` on disk. The test fails
+when a second `effect` version is written into the lockfile (checked by mutating it).
 
 ### 7. Licenses and REUSE
 
@@ -137,6 +165,17 @@ permissions:
 
 GitHub masks `GITHUB_TOKEN` in logs. The token is scoped to the install step, and no other step
 needs the registry.
+
+Checked locally with a fresh store (`--store-dir`), so the tarball had to be downloaded:
+
+- without a token, `pnpm install --frozen-lockfile` fails with
+  `ERR_PNPM_TARBALL_HTTP_STATUS … 401`;
+- with `pnpm_config__auth` it installs;
+- a user-level npmrc holding `//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}` also
+  installs.
+
+With the `@camena-ai/` exemption removed, the license allowlist passes over 232 production
+packages, `@camena-ai/contracts@0.1.0` among them.
 
 ### 9. Docs
 
