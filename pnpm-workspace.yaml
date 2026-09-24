@@ -6,6 +6,10 @@ packages:
 
 nodeLinker: hoisted
 saveExact: true
+# Set explicitly so the rule is strict: an install that would pick a version younger than 24 h
+# fails in CI and prompts in a terminal. pnpm's built-in default is non-strict and silently
+# appends such versions to minimumReleaseAgeExclude instead. Never add exclusions; wait.
+minimumReleaseAge: 1440
 engineStrict: true
 
 # pnpm runs no lifecycle scripts unless the package is allowed here (pnpm 12 fails the install
