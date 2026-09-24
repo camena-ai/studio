@@ -42,8 +42,8 @@ second file for no gain, so this design doesn't use one.
 
 ### 2. No release-age exclusion, and the age rule is made strict
 
-`0.1.0` was published 2026-09-24 06:19:21 UTC. No `minimumReleaseAgeExclude` entry is added. The
-PR merges into `main` after 2026-09-25 06:19:21 UTC, with the temporary exclusion described below
+`0.1.0` was published 2026-09-24 06:19:21 UTC. `main` never carries a `minimumReleaseAgeExclude`
+entry: the PR merges after 2026-09-25 06:19:21 UTC, with the temporary exclusion described below
 reverted first.
 
 pnpm 12.5.1's built-in 24 h default is **non-strict**. A plain `pnpm install` on 2026-09-24
