@@ -43,7 +43,8 @@ second file for no gain, so this design doesn't use one.
 ### 2. No release-age exclusion, and the age rule is made strict
 
 `0.1.0` was published 2026-09-24 06:19:21 UTC. No `minimumReleaseAgeExclude` entry is added. The
-committed install, the lockfile and the PR land after 2026-09-25 06:19 UTC.
+PR merges into `main` after 2026-09-25 06:19:21 UTC, with the temporary exclusion described below
+reverted first.
 
 pnpm 12.5.1's built-in 24 h default is **non-strict**. A plain `pnpm install` on 2026-09-24
 succeeded and silently appended `'@camena-ai/contracts@0.1.0'` to `minimumReleaseAgeExclude` in
@@ -52,6 +53,11 @@ succeeded and silently appended `'@camena-ai/contracts@0.1.0'` to `minimumReleas
 install then fails with "1 version does not meet the minimumReleaseAge constraint", and an
 interactive one prompts. So `pnpm-workspace.yaml` sets `minimumReleaseAge: 1440`, and CLAUDE.md
 stops describing the default as if it enforced anything.
+
+The project owner chose to implement before that cutoff rather than wait a day, adding a
+temporary `minimumReleaseAgeExclude` entry for `@camena-ai/contracts@0.1.0` in its own commit
+(`a340f12`). That commit is reverted after 2026-09-25 06:19:21 UTC and before the pull request
+merges, so `main` never carries an exclusion.
 
 Prototypes before the cutoff run in a scratch directory with `--config.minimum-release-age=0`,
 never in the repository.
@@ -200,6 +206,6 @@ packages, `@camena-ai/contracts@0.1.0` among them.
   first real UI consumer.
 - **Fork PRs are unverified.** Whether a fork PR's `GITHUB_TOKEN` can read the package with
   `packages: read` can't be checked until a fork opens a PR. If it can't, outside contributors'
-  PRs fail at install, and D20's escape hatch (move to an npm organization) applies.
+  PRs fail at install, and publishing the package to the public npm registry would be the fix.
 - **No version header check.** The client does not send or check `studio-api-version`
   (`API_VERSION_HEADER`) yet. That belongs with the first versioned endpoint.

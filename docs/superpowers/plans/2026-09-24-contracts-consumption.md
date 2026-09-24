@@ -26,20 +26,22 @@ Spec: `docs/superpowers/specs/2026-09-24-contracts-consumption-design.md`.
 
 ## Global Constraints
 
-- **Node 24.** This machine's default shell Node is 22 and `engineStrict: true` is set. Begin
-  every shell with `export PATH=$HOME/.nvm/versions/node/v24.21.0/bin:$PATH ELECTRON_SKIP_BINARY_DOWNLOAD=1`.
-  `pnpm` resolves to 12.5.1 through corepack and the `packageManager` field; check with
+- **Node 24.** Make sure Node 24 is first on `PATH` (for example via nvm), because
+  `engineStrict: true` is set, and set `ELECTRON_SKIP_BINARY_DOWNLOAD=1` for every shell. `pnpm`
+  resolves to 12.5.1 through corepack and the `packageManager` field; check with
   `pnpm --version`.
 - **Pinning.** `@camena-ai/contracts` is pinned to exactly `0.1.0` in the pnpm `catalog`, and
   `apps/web` references it as `"catalog:"`. No other package depends on it.
 - **Release age.** `0.1.0` was published 2026-09-24 06:19:21 UTC. Do not install it in the
   repository before **2026-09-25 06:19:21 UTC**. Never add a `minimumReleaseAgeExclude` entry,
   never answer yes to pnpm's release-age prompt, never pass `--config.minimum-release-age` in the
-  repository.
+  repository. The project owner later chose a temporary exclusion in its own commit, reverted in
+  Task 5 before merge.
 - **Tokens.** Never commit a token or a `.npmrc`. Never print a token: use `$(gh auth token)`
-  inside a command only. The `gh` CLI token has `read:packages`.
-- **Stale token in `~/.npmrc`.** `~/.npmrc` holds a `//npm.pkg.github.com/:_authToken` that is
-  stale (401). `pnpm_config__auth` in the environment overrides it (verified), so local installs
+  inside a command only. The `gh` CLI token needs the `read:packages` scope
+  (`gh auth refresh -h github.com -s read:packages`).
+- **Token precedence.** If `~/.npmrc` holds an outdated `npm.pkg.github.com` token,
+  `pnpm_config__auth` in the environment overrides it (verified), so this plan's install commands
   pass the token that way.
 - **Lockfile re-verification.** pnpm re-verifies the lockfile against the registry ("Verifying
   lockfile against supply-chain policies") before `run`/`exec` when the settings differ from the
@@ -588,7 +590,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: everything above.
-- Produces: an open PR into `main`.
+- Produces: a draft PR into `main`, taken out of draft after the temporary release-age exclusion
+  is reverted.
 
 - [ ] **Step 1: Bring the branch up to date with `main`**
 
@@ -608,11 +611,11 @@ Expected:
 - every command passes;
 - `git status --short` prints nothing (no generated file changed, no exclusion written).
 
-- [ ] **Step 3: Push and open the PR**
+- [ ] **Step 3: Push and open the PR as a draft**
 
 ```bash
 git push -u origin HEAD
-gh pr create --base main --title "Consume @camena-ai/contracts 0.1.0 from GitHub Packages" --body-file <scratchpad>/pr-body.md
+gh pr create --draft --base main --title "Consume @camena-ai/contracts 0.1.0 from GitHub Packages" --body-file <scratchpad>/pr-body.md
 ```
 
 Write `<scratchpad>/pr-body.md` first. It summarizes:
@@ -623,7 +626,10 @@ Write `<scratchpad>/pr-body.md` first. It summarizes:
 - the `healthAtom` and its tests;
 - the lockfile proof of one `effect`;
 - the license allowlist change;
-- the known limitations from the spec.
+- the known limitations from the spec;
+- that the branch currently carries a temporary `minimumReleaseAgeExclude` entry for
+  `@camena-ai/contracts@0.1.0` (commit `a340f12`), and that it is reverted before this PR comes
+  out of draft.
 
 It links the spec and this plan, and ends with:
 
@@ -637,3 +643,34 @@ Use the PR status tools to read both jobs: `Lint, typecheck, test` and `REUSE an
 allowlist`. If the install step fails with a 401 or 403, check that the repository still has
 Actions read access to the package (package settings → *Manage Actions access*) before changing
 any code.
+
+- [ ] **Step 5: Revert the temporary exclusion (after 2026-09-25 06:19:21 UTC)**
+
+Run:
+
+```bash
+date -u +%Y-%m-%dT%H:%M:%SZ   # must be later than 2026-09-25T06:19:21Z
+git revert --no-commit a340f12
+git commit -m "Revert the temporary release-age exclusion for @camena-ai/contracts 0.1.0" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+grep -c '^minimumReleaseAgeExclude:' pnpm-workspace.yaml   # expect 0
+```
+
+`git revert --no-edit a340f12` would produce a commit message without the `Co-Authored-By`
+trailer, so revert with `--no-commit` and commit explicitly with the trailer, as shown above.
+
+Run:
+
+```bash
+rm -rf node_modules apps/*/node_modules packages/*/node_modules
+pnpm_config__auth="{\"https://npm.pkg.github.com/\":{\"@camena-ai\":{\"authToken\":\"$(gh auth token)\"}}}" pnpm install --frozen-lockfile </dev/null
+pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm licenses:check && pnpm reuse:lint
+git status --short
+```
+
+Expected:
+- every command passes;
+- `git status --short` prints nothing — this now proves the strict rule accepts the lockfile with
+  no exclusion in place.
+
+Run: `git push && gh pr ready`
+Expected: the PR leaves draft. Repeat Step 4 to watch CI on the revert commit.
