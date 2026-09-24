@@ -19,6 +19,8 @@ You need **Node 24** (see `.node-version`) and **pnpm** (the version in `package
 
 fnm, Volta and mise read `.node-version`; nvm does not, so run `nvm install 24 && nvm use 24` first. On an older Node, `pnpm install` stops with `ERR_PNPM_UNSUPPORTED_ENGINE`.
 
+Installing needs a GitHub token with `read:packages` in your user-level `~/.npmrc`, because the API contracts package comes from GitHub Packages, which requires authentication even for public packages. [CONTRIBUTING.md](CONTRIBUTING.md#development-setup) shows how to create one.
+
 ```bash
 git clone https://github.com/camena-ai/studio.git
 cd studio

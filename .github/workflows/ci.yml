@@ -9,6 +9,11 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  # GitHub's npm registry needs a token even for the public @camena-ai/contracts (D20).
+  packages: read
+
 env:
   # CI never needs the Electron binary until packaging exists.
   ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
@@ -26,6 +31,10 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+        env:
+          # Routes the token to the @camena-ai scope only; pnpm 12 does not expand variables in a
+          # committed .npmrc, so there is none.
+          pnpm_config__auth: '{"https://npm.pkg.github.com/":{"@camena-ai":{"authToken":"${{ secrets.GITHUB_TOKEN }}"}}}'
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
@@ -41,5 +50,9 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+        env:
+          # Routes the token to the @camena-ai scope only; pnpm 12 does not expand variables in a
+          # committed .npmrc, so there is none.
+          pnpm_config__auth: '{"https://npm.pkg.github.com/":{"@camena-ai":{"authToken":"${{ secrets.GITHUB_TOKEN }}"}}}'
       - uses: fsfe/reuse-action@v5
       - run: pnpm licenses:check

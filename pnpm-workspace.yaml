@@ -16,6 +16,12 @@ minimumReleaseAgeExclude:
   - "@camena-ai/contracts@0.1.0"
 engineStrict: true
 
+# @camena-ai/* comes from GitHub Packages (D20). The token is never committed: CI passes
+# GITHUB_TOKEN through pnpm_config__auth, contributors keep one in their user-level ~/.npmrc
+# (CONTRIBUTING.md). pnpm 12 does not expand variables in a project .npmrc, so there is none.
+registries:
+  "@camena-ai": https://npm.pkg.github.com/
+
 # pnpm runs no lifecycle scripts unless the package is allowed here (pnpm 12 fails the install
 # on any undecided script). Electron's postinstall downloads its binary; esbuild's installs the
 # platform binary for Vite. electron-winstaller fetches Squirrel.Windows tooling that only the
@@ -32,6 +38,9 @@ catalog:
   effect: 4.0.0-rc.117
   "@effect/atom-react": 4.0.0-rc.117
   "@effect/vitest": 4.0.0-rc.117
+  # Contracts (D20): published by the platform repository; `effect` is its exact peer, so it
+  # must match the version above. Bumping it is its own commit naming the contract change.
+  "@camena-ai/contracts": 0.1.0
   # Web (D21)
   react: 19.3.0
   react-dom: 19.3.0

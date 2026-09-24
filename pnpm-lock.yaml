@@ -167,6 +167,9 @@ catalogs:
     '@biomejs/biome':
       specifier: 2.5.14
       version: 2.5.14
+    '@camena-ai/contracts':
+      specifier: 0.1.0
+      version: 0.1.0
     '@effect/atom-react':
       specifier: 4.0.0-rc.117
       version: 4.0.0-rc.117
@@ -308,6 +311,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@camena-ai/contracts':
+        specifier: 'catalog:'
+        version: 0.1.0(effect@4.0.0-rc.117)
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.0-rc.117(effect@4.0.0-rc.117)(react@19.3.0)(scheduler@0.27.0)
@@ -584,6 +590,11 @@ packages:
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
+
+  '@camena-ai/contracts@0.1.0':
+    resolution: {integrity: sha512-+FLQPnIjy4zruBMkh1ktnM+oyAUXk53iUHCU349Bk8ARO45o9a99eawa6oqL9/65tNEIt4AFanussatD6Nzu+Q==, tarball: https://npm.pkg.github.com/download/@camena-ai/contracts/0.1.0/82d5019b0b632daa022b2b849ab80bc89462bb8b}
+    peerDependencies:
+      effect: 4.0.0-rc.117
 
   '@csstools/color-helpers@6.1.1':
     resolution: {integrity: sha512-gLNsunvwf3mCi5u5o46/Z/JcJMnhbHSaZ69rkgPzNM3J4s8hWwpPUQB6/tt0EDFyCiWzxANlx+2LJwpYj4zS1w==}
@@ -4093,6 +4104,10 @@ snapshots:
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
+
+  '@camena-ai/contracts@0.1.0(effect@4.0.0-rc.117)':
+    dependencies:
+      effect: 4.0.0-rc.117
 
   '@csstools/color-helpers@6.1.1': {}
 

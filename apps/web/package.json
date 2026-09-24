@@ -12,6 +12,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@camena-ai/contracts": "catalog:",
     "@effect/atom-react": "catalog:",
     "@studio/ui": "workspace:*",
     "@tanstack/react-router": "catalog:",
