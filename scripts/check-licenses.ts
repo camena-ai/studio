@@ -122,12 +122,11 @@ if (result.status !== 0) {
 }
 
 const projects: ReadonlyArray<ListedProject> = JSON.parse(result.stdout)
-// First-party packages are walked but not checked: this workspace's own projects (matched by name,
-// not by the `@studio/` prefix, whose npm scope belongs to someone else) and the contracts package
-// published under the `camena-ai` organization's GitHub Packages scope (D20).
+// This workspace's own projects are walked but not checked (matched by name, not by the
+// `@studio/` prefix, whose npm scope belongs to someone else). Published packages, the platform
+// repository's `@camena-ai/contracts` included, are checked like any other dependency.
 const workspaceNames = new Set(projects.map((project) => project.name))
-const isFirstParty = (name: string): boolean =>
-  workspaceNames.has(name) || name.startsWith("@camena-ai/")
+const isFirstParty = (name: string): boolean => workspaceNames.has(name)
 const production = new Map<string, string>()
 const collect = (deps: Record<string, ListedDependency> | undefined): void => {
   for (const [name, dep] of Object.entries(deps ?? {})) {

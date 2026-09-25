@@ -19,6 +19,22 @@ The gateway and everything server-side live in a separate private repository, wh
 
 You need **Node 24** (see `.node-version`) and **pnpm** (the version in `packageManager` in `package.json`; `corepack enable` picks it up).
 
+You also need a **GitHub token with `read:packages`**. The web app depends on
+`@camena-ai/contracts`, which is published to GitHub Packages. GitHub's npm registry asks for a
+token on every install, even for a public package, so every contributor needs one; the project
+accepts that cost for now. Use a classic personal access token with only the `read:packages`
+scope ([create one](https://github.com/settings/tokens/new?scopes=read:packages)), or, with the
+GitHub CLI, run `gh auth refresh -h github.com -s read:packages` and use `gh auth token`. Put it
+in your **user-level** `~/.npmrc`, never in the repository:
+
+```ini
+//npm.pkg.github.com/:_authToken=<your token>
+```
+
+A `${VARIABLE}` reference works there too if you keep the token in your shell environment. The
+scope's registry is already set in `pnpm-workspace.yaml`. Without the token, `pnpm install`
+fails with a 401 from `npm.pkg.github.com`.
+
 ```bash
 git clone https://github.com/camena-ai/studio.git
 cd studio
