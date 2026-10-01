@@ -51,6 +51,7 @@ pnpm test                    # turbo run test (vitest run in every package)
 pnpm vitest                  # all projects in one process, from the root config
 pnpm e2e                     # turbo run e2e (playwright test in apps/web; no config yet)
 pnpm dev                     # turbo run dev (vite in apps/web on http://localhost:5173)
+                             # proxies /v1, /api/auth, /health to STUDIO_GATEWAY_URL (default :3000)
 pnpm build                   # turbo run build (vite build in apps/web; the desktop app will bundle it)
 pnpm dlx shadcn@4.21.0 add <item> -c packages/ui   # vendor a registry item (see docs/design-system.md)
 pnpm licenses:check          # production dependency license allowlist (scripts/check-licenses.ts)

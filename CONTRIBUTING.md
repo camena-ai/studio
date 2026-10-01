@@ -39,7 +39,8 @@ fails with a 401 from `npm.pkg.github.com`.
 git clone https://github.com/camena-ai/studio.git
 cd studio
 pnpm install
-pnpm dev     # the web app on http://localhost:5173
+pnpm dev     # the web app on http://localhost:5173, proxying the API to a local gateway
+             # (STUDIO_GATEWAY_URL, default http://localhost:3000; add the dev origin to its TRUSTED_ORIGINS)
 ```
 
 Set `ELECTRON_SKIP_BINARY_DOWNLOAD=1` before installing if you don't need the Electron binary.
