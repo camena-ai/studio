@@ -10,7 +10,8 @@ import { defineConfig } from "vite"
  * The Origin header is kept as the browser sent it, so the dev server's origin must be in the
  * gateway's `TRUSTED_ORIGINS`.
  */
-const gateway = process.env["STUDIO_GATEWAY_URL"] ?? "http://localhost:3000"
+const { STUDIO_GATEWAY_URL } = process.env
+const gateway = STUDIO_GATEWAY_URL ?? "http://localhost:3000"
 const forward = { target: gateway, changeOrigin: false, ws: false }
 
 export default defineConfig({

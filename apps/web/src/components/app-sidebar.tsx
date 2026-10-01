@@ -1,5 +1,6 @@
-import { useAtom } from "@effect/atom-react"
+import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { StudioMark, ThemeToggle } from "@studio/ui"
+import { Button } from "@studio/ui/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +14,9 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@studio/ui/components/ui/sidebar"
-import { SquarePen } from "lucide-react"
+import { AsyncResult } from "effect/unstable/reactivity"
+import { LogOut, SquarePen } from "lucide-react"
+import { sessionAtom, signOutAtom } from "../state/session.ts"
 import { themePreferenceAtom } from "../state/theme.ts"
 
 const placeholderRows = ["recent-1", "recent-2", "recent-3"]
@@ -24,6 +27,9 @@ const placeholderRows = ["recent-1", "recent-2", "recent-3"]
  */
 export function AppSidebar() {
   const [theme, setTheme] = useAtom(themePreferenceAtom)
+  const session = useAtomValue(sessionAtom)
+  const signOut = useAtomSet(signOutAtom)
+  const email = AsyncResult.isSuccess(session) ? (session.value?.user.email ?? "") : ""
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader className="titlebar-drag">
@@ -59,9 +65,20 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground">Not signed in</span>
-          <ThemeToggle theme={theme} onThemeChange={setTheme} />
+        <div className="flex items-center justify-between gap-2 px-1">
+          <span className="truncate text-xs text-muted-foreground">{email}</span>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Sign out"
+              onClick={() => signOut()}
+            >
+              <LogOut />
+            </Button>
+            <ThemeToggle theme={theme} onThemeChange={setTheme} />
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>
