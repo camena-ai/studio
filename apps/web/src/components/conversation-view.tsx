@@ -1,5 +1,5 @@
 import type { ConversationId } from "@camena-ai/contracts"
-import { useAtom, useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react"
+import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { AsyncResult } from "effect/unstable/reactivity"
 import { useEffect, useRef } from "react"
 import {
@@ -16,21 +16,21 @@ import { TopBar } from "./top-bar.tsx"
 export function ConversationView({ id }: { readonly id: ConversationId }) {
   const conversation = useAtomValue(conversationAtom(id))
   const live = useAtomValue(liveTurnAtom(id))
-  const [firstTurn, setFirstTurn] = useAtom(firstTurnAtom)
+  const firstTurn = useAtomValue(firstTurnAtom)
   // Mounted for the view's lifetime: leaving the conversation interrupts a running turn.
   useAtomMount(sendTurnAtom(id))
   const sendTurn = useAtomSet(sendTurnAtom(id))
   const bottom = useRef<HTMLDivElement>(null)
   const sentFirst = useRef(false)
 
-  // A new chat's first message waits in `firstTurnAtom` until its conversation opens. The ref
-  // keeps StrictMode's second effect run from sending it again.
+  // A new chat's first message waits in `firstTurnAtom` until the gateway starts its turn, so a
+  // view that remounts before then sends it again under the same Idempotency-Key and the gateway
+  // replays it. The ref keeps StrictMode's second effect run in one mount from sending it twice.
   useEffect(() => {
     if (sentFirst.current || firstTurn?.conversationId !== id) return
     sentFirst.current = true
-    setFirstTurn(null)
     sendTurn(firstTurn.input)
-  }, [firstTurn, id, sendTurn, setFirstTurn])
+  }, [firstTurn, id, sendTurn])
 
   const stored = AsyncResult.isSuccess(conversation) ? conversation.value.messages : []
   const messages = mergeMessages(stored, live)

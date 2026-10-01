@@ -43,14 +43,27 @@ export const refusalOf = (error: unknown): string => {
   return "unreachable"
 }
 
+/** A new chat's first message: waits here until the gateway
+ * has started its turn (`start`) or refused it. */
+export const firstTurnAtom = Atom.make<{
+  readonly conversationId: ConversationId
+  readonly input: TurnInput
+} | null>(null).pipe(Atom.keepAlive)
+
 export const sendTurnAtom = Atom.family((id: ConversationId) =>
   StudioApiClient.runtime.fn(
     Effect.fnUntraced(function* (input: TurnInput, get) {
       const client = yield* StudioApiClient
+      const registry = get.registry
       const live = liveTurnAtom(id)
       const update = (f: (turn: LiveTurn) => LiveTurn) => {
         const current = get(live)
         if (current !== null) get.set(live, f(current))
+      }
+      // A new chat's first message stays pending until the gateway has the turn, so a view that
+      // remounts first sends it again under the same key and the gateway replays it.
+      const settleFirstTurn = () => {
+        if (get(firstTurnAtom)?.conversationId === id) get.set(firstTurnAtom, null)
       }
       get.set(live, beginTurn(input.text, input.model))
       yield* client.conversations
@@ -61,30 +74,32 @@ export const sendTurnAtom = Atom.family((id: ConversationId) =>
         })
         .pipe(
           Stream.unwrap,
-          Stream.runForEach((event) => Effect.sync(() => update((turn) => foldTurn(turn, event)))),
+          Stream.runForEach((event) =>
+            Effect.sync(() => {
+              if (event._tag === "start") settleFirstTurn()
+              update((turn) => foldTurn(turn, event))
+            }),
+          ),
           Effect.tapError((error) =>
-            Effect.sync(() =>
+            Effect.sync(() => {
+              settleFirstTurn()
               update((turn) => ({
                 ...turn,
                 finished: true,
                 refusal: refusalOf(error),
                 assistant: { ...turn.assistant, status: "failed" },
-              })),
-            ),
+              }))
+            }),
           ),
-          Effect.onInterrupt(() => Effect.sync(() => get.set(live, null))),
+          // Interruption disposes this atom, after which `get.set` is a no-op; the registry
+          // outlives it, so the overlay of an abandoned turn is cleared through it.
+          Effect.onInterrupt(() => Effect.sync(() => registry.set(live, null))),
         )
       get.refresh(conversationAtom(id))
       get.refresh(conversationsAtom)
     }),
   ),
 )
-
-/** A new chat's first message: waits here while the conversation is created and opened. */
-export const firstTurnAtom = Atom.make<{
-  readonly conversationId: ConversationId
-  readonly input: TurnInput
-} | null>(null).pipe(Atom.keepAlive)
 
 export const startChatAtom = StudioApiClient.runtime.fn(
   Effect.fnUntraced(function* (input: Omit<TurnInput, "idempotencyKey">, get) {

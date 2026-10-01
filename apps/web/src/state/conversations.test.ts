@@ -4,7 +4,7 @@ import { Effect, Layer } from "effect"
 import { FetchHttpClient } from "effect/unstable/http"
 import { AtomRegistry } from "effect/unstable/reactivity"
 import { httpClientLayerAtom } from "../api/studio-api.ts"
-import { liveTurnAtom, sendTurnAtom } from "./conversations.ts"
+import { firstTurnAtom, liveTurnAtom, sendTurnAtom } from "./conversations.ts"
 
 const ID = "22222222-2222-4222-8222-222222222222" as ConversationId
 const ASSISTANT = "33333333-3333-4333-8333-333333333333"
@@ -90,6 +90,48 @@ describe("sendTurnAtom", () => {
       assert.strictEqual(live?.refusal, "conversation_busy")
       assert.strictEqual(live?.assistant.status, "failed")
       unmount()
+    }),
+  )
+
+  it.effect("clears a new chat's pending first message once the gateway starts the turn", () =>
+    Effect.gen(function* () {
+      const body = sse([
+        ["start", { messageId: ASSISTANT }],
+        ["done", {}],
+      ])
+      const { registry } = registryWith((request) =>
+        request.method === "POST"
+          ? new Response(body, { headers: { "content-type": "text/event-stream" } })
+          : new Response(null, { status: 503 }),
+      )
+      const input = { text: "Hi", model: "m", idempotencyKey: "key-3" }
+      registry.set(firstTurnAtom, { conversationId: ID, input })
+      const unmount = registry.mount(sendTurnAtom(ID))
+      registry.set(sendTurnAtom(ID), input)
+      yield* AtomRegistry.getResult(registry, sendTurnAtom(ID), { suspendOnWaiting: true })
+      assert.isNull(registry.get(firstTurnAtom))
+      unmount()
+    }),
+  )
+
+  it.live("keeps the pending first message when the turn is interrupted before it starts", () =>
+    Effect.gen(function* () {
+      const { registry } = registryWith(
+        () =>
+          new Response(new ReadableStream(), {
+            headers: { "content-type": "text/event-stream" },
+          }),
+      )
+      const input = { text: "Hi", model: "m", idempotencyKey: "key-4" }
+      registry.set(firstTurnAtom, { conversationId: ID, input })
+      const unmount = registry.mount(sendTurnAtom(ID))
+      registry.set(sendTurnAtom(ID), input)
+      yield* Effect.sleep("10 millis")
+      unmount()
+      yield* Effect.sleep("10 millis")
+      // A remounted view re-sends it with the same key, so the gateway replays rather than reruns.
+      assert.deepStrictEqual(registry.get(firstTurnAtom), { conversationId: ID, input })
+      assert.isNull(registry.get(liveTurnAtom(ID)))
     }),
   )
 })
