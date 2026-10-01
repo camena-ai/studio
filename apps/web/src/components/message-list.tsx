@@ -51,7 +51,9 @@ function AssistantBody({
   }
   return (
     <>
-      {message.content !== "" && <MessageContent markdown={message.content} />}
+      {message.content !== "" && (
+        <MessageContent markdown={message.content} streaming={message.status === "streaming"} />
+      )}
       {message.status === "streaming" && message.content === "" && (
         <span className="inline-block size-2 animate-pulse rounded-full bg-muted-foreground" />
       )}

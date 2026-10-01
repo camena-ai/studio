@@ -242,6 +242,9 @@ catalogs:
     react-dom:
       specifier: 19.3.0
       version: 19.3.0
+    rehype-harden:
+      specifier: 1.1.8
+      version: 1.1.8
     streamdown:
       specifier: 2.6.0
       version: 2.6.0
@@ -332,6 +335,9 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.0(react@19.3.0)
+      rehype-harden:
+        specifier: 'catalog:'
+        version: 1.1.8
       streamdown:
         specifier: 'catalog:'
         version: 2.6.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(supports-color@7.2.0)
