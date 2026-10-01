@@ -6,6 +6,9 @@
   "type": "module",
   "main": "dist/main/index.js",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "pnpm --filter @studio/web build && pnpm build && electron .",
+    "package": "scripts/package.sh --mac --dir",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
@@ -18,5 +21,29 @@
     "electron-builder": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "build": {
+    "appId": "ai.camena.studio",
+    "productName": "Studio",
+    "directories": {
+      "output": "../release"
+    },
+    "files": [
+      "dist/main/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "web-dist",
+        "to": "web"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dir"
+      ],
+      "identity": null
+    }
   }
 }

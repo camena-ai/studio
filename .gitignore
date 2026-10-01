@@ -11,6 +11,7 @@ out/
 
 # Electron packaging (electron-builder, pnpm deploy)
 release/
+.deploy/
 deploy/
 
 # Local models — never commit weights
