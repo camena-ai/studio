@@ -10,6 +10,9 @@ saveExact: true
 # fails in CI and prompts in a terminal. pnpm's built-in default is non-strict and silently
 # appends such versions to minimumReleaseAgeExclude instead. Never add exclusions; wait.
 minimumReleaseAge: 1440
+# TEMPORARY (#8): reverted after 2026-10-03 12:42 UTC, before the PR merges.
+minimumReleaseAgeExclude:
+  - "@camena-ai/contracts@0.20.0"
 engineStrict: true
 
 # @camena-ai/* comes from GitHub Packages (D20). The token is never committed: CI passes
