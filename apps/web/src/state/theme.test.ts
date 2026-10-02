@@ -1,4 +1,4 @@
-import { AtomRegistry } from "effect/unstable/reactivity"
+import { AtomRegistry } from "effect/reactivity"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { applyTheme, resolvedThemeAtom, THEME_STORAGE_KEY, themePreferenceAtom } from "./theme.ts"
 
