@@ -161,3 +161,21 @@ export const mergeMessages = (
   const start = messages[index - 1]?.author === "user" ? index - 1 : index
   return [...stored.slice(0, start), ...stored.slice(index + 1), live.user, live.assistant]
 }
+
+/** How long a conversation label may run before it is cut with an ellipsis. */
+export const LABEL_LENGTH = 48
+
+/**
+ * A conversation's label: its title, else its first user message on one line (the gateway sets no
+ * titles yet), else "New chat" for one with no message.
+ */
+export const conversationLabel = (
+  title: string | null,
+  messages: ReadonlyArray<Pick<Message, "author" | "content">>,
+): string => {
+  if (title !== null && title.trim() !== "") return title
+  const first = messages.find((m) => m.author === "user" && m.content)?.content
+  if (!first) return "New chat"
+  const line = first.replace(/\s+/g, " ").trim()
+  return line.length > LABEL_LENGTH ? `${line.slice(0, LABEL_LENGTH - 1).trimEnd()}…` : line
+}

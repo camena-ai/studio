@@ -20,6 +20,7 @@ import { Cpu, LogOut, SquarePen } from "lucide-react"
 import { conversationsAtom } from "../state/conversations.ts"
 import { sessionAtom, signOutAtom } from "../state/session.ts"
 import { themePreferenceAtom } from "../state/theme.ts"
+import { SidebarConversation } from "./sidebar-conversation.tsx"
 
 const placeholderRows = ["recent-1", "recent-2", "recent-3"]
 
@@ -73,13 +74,11 @@ export function AppSidebar() {
             <SidebarMenu>
               {AsyncResult.isSuccess(conversations)
                 ? conversations.value.conversations.map((conversation) => (
-                    <SidebarMenuItem key={conversation.id}>
-                      <SidebarMenuButton asChild isActive={activeId === conversation.id}>
-                        <Link to="/c/$conversationId" params={{ conversationId: conversation.id }}>
-                          <span className="truncate">{conversation.title ?? "New chat"}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <SidebarConversation
+                      key={conversation.id}
+                      conversation={conversation}
+                      active={activeId === conversation.id}
+                    />
                   ))
                 : placeholderRows.map((key) => (
                     <SidebarMenuItem key={key}>

@@ -1,6 +1,6 @@
 import type { Message, MessageId, TurnEvent, UnknownEvent } from "@camena-ai/contracts"
 import { assert, describe, it } from "@effect/vitest"
-import { beginTurn, foldTurn, type LiveTurn, mergeMessages } from "./turn.ts"
+import { beginTurn, conversationLabel, foldTurn, type LiveTurn, mergeMessages } from "./turn.ts"
 
 const ASSISTANT = "11111111-1111-4111-8111-111111111111" as MessageId
 const fold = (events: ReadonlyArray<TurnEvent | UnknownEvent>): LiveTurn =>
@@ -124,5 +124,26 @@ describe("mergeMessages", () => {
       merged.map((m) => m.content),
       ["Hello", "Hi there"],
     )
+  })
+})
+
+describe("conversationLabel", () => {
+  const user = (content: string | null) => ({ author: "user" as const, content })
+  it("prefers the title", () => {
+    assert.strictEqual(conversationLabel("Trip plan", [user("hello")]), "Trip plan")
+  })
+  it("falls back to the first user message on one line, shortened", () => {
+    assert.strictEqual(
+      conversationLabel(null, [user("  Reply with\nthree   words ")]),
+      "Reply with three words",
+    )
+    const long = "a".repeat(80)
+    const label = conversationLabel(null, [user(long)])
+    assert.strictEqual(label.length, 48)
+    assert.isTrue(label.endsWith("…"))
+  })
+  it("is New chat without a user message", () => {
+    assert.strictEqual(conversationLabel(null, []), "New chat")
+    assert.strictEqual(conversationLabel("  ", [user(null)]), "New chat")
   })
 })

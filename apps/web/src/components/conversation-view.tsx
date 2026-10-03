@@ -8,7 +8,7 @@ import {
   liveTurnAtom,
   sendTurnAtom,
 } from "../state/conversations.ts"
-import { mergeMessages } from "../state/turn.ts"
+import { conversationLabel, mergeMessages } from "../state/turn.ts"
 import { ChatComposer } from "./chat-composer.tsx"
 import { MessageList } from "./message-list.tsx"
 import { TopBar } from "./top-bar.tsx"
@@ -42,7 +42,7 @@ export function ConversationView({ id }: { readonly id: ConversationId }) {
   }, [messages.length, lastLength])
 
   const title = AsyncResult.isSuccess(conversation)
-    ? (conversation.value.title ?? "New chat")
+    ? conversationLabel(conversation.value.title, stored.length > 0 ? stored : messages)
     : "Conversation"
   const tainted = AsyncResult.isSuccess(conversation) && conversation.value.tainted
 
