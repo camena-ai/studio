@@ -16,7 +16,7 @@ import {
 } from "@studio/ui/components/ui/sidebar"
 import { Link, useRouterState } from "@tanstack/react-router"
 import { AsyncResult } from "effect/unstable/reactivity"
-import { LogOut, SquarePen } from "lucide-react"
+import { Cpu, LogOut, SquarePen } from "lucide-react"
 import { conversationsAtom } from "../state/conversations.ts"
 import { sessionAtom, signOutAtom } from "../state/session.ts"
 import { themePreferenceAtom } from "../state/theme.ts"
@@ -30,6 +30,9 @@ export function AppSidebar() {
   const signOut = useAtomSet(signOutAtom)
   const email = AsyncResult.isSuccess(session) ? (session.value?.user.email ?? "") : ""
   const conversations = useAtomValue(conversationsAtom)
+  const onInference = useRouterState({
+    select: (state) => state.location.pathname === "/inference",
+  })
   const activeId = useRouterState({
     select: (state) => (state.location.pathname.match(/^\/c\/([^/]+)/) ?? [])[1],
   })
@@ -46,10 +49,18 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={activeId === undefined}>
+                <SidebarMenuButton asChild isActive={activeId === undefined && !onInference}>
                   <Link to="/">
                     <SquarePen />
                     <span>New chat</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={onInference}>
+                  <Link to="/inference">
+                    <Cpu />
+                    <span>Local inference</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

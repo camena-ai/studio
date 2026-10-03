@@ -3,7 +3,7 @@ import path from "node:path"
 import { describe, expect, it } from "vitest"
 import { contentSecurityPolicy, inlineScriptHashes } from "./csp.ts"
 import { proxyToGateway } from "./proxy.ts"
-import { contentTypeFor, isGatewayPath, staticFileFor } from "./routes.ts"
+import { contentTypeFor, isGatewayPath, localInferencePath, staticFileFor } from "./routes.ts"
 import { SessionJar } from "./session-jar.ts"
 
 describe("isGatewayPath", () => {
@@ -14,6 +14,17 @@ describe("isGatewayPath", () => {
     for (const p of ["/", "/c/abc", "/assets/index.js", "/v1x", "/api/other", "/healthz"]) {
       expect(isGatewayPath(p)).toBe(false)
     }
+  })
+})
+
+describe("localInferencePath", () => {
+  it("maps the app's local-inference routes to the supervisor's control API", () => {
+    expect(localInferencePath("/local-inference/status")).toBe("/control/status")
+    expect(localInferencePath("/local-inference/pause")).toBe("/control/pause")
+    expect(localInferencePath("/local-inference")).toBeNull()
+    expect(localInferencePath("/v1/models")).toBeNull()
+    expect(localInferencePath("/local-inference/../v1/chat/completions")).toBeNull()
+    expect(localInferencePath("/local-inference/status/extra")).toBeNull()
   })
 })
 

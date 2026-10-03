@@ -10,8 +10,10 @@ import { defineConfig } from "vite"
  * The Origin header is kept as the browser sent it, so the dev server's origin must be in the
  * gateway's `TRUSTED_ORIGINS`.
  */
-const { STUDIO_GATEWAY_URL } = process.env
+const { STUDIO_GATEWAY_URL, LOCAL_INFERENCE_URL } = process.env
 const gateway = STUDIO_GATEWAY_URL ?? "http://localhost:3000"
+/** A self-hosted model's supervisor; `/local-inference/*` maps to its `/control/*`. */
+const localInference = LOCAL_INFERENCE_URL ?? "http://127.0.0.1:8084"
 const forward = { target: gateway, changeOrigin: false, ws: false }
 
 export default defineConfig({
@@ -23,6 +25,11 @@ export default defineConfig({
       "/v1": forward,
       "/api/auth": forward,
       "/health": forward,
+      "/local-inference": {
+        target: localInference,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/local-inference/, "/control"),
+      },
     },
   },
 })

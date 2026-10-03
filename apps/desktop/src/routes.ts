@@ -14,6 +14,15 @@ export const isGatewayPath = (pathname: string): boolean =>
   pathname.startsWith("/api/auth/")
 
 /**
+ * A self-hosted model's supervisor: `/local-inference/<action>` maps to its `/control/<action>`.
+ * Only the three actions pass, so no path reaches the model's own endpoints around the gateway.
+ */
+export const localInferencePath = (pathname: string): string | null => {
+  const action = /^\/local-inference\/(status|start|pause)$/.exec(pathname)?.[1]
+  return action === undefined ? null : `/control/${action}`
+}
+
+/**
  * The file under `root` a static path names, or `null` for a path that escapes `root`. An empty
  * path or a directory-like one (no extension) is the SPA's `index.html`, so client-side routes
  * such as `/c/<id>` reload correctly.

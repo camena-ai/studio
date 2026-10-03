@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url"
 import { app, BrowserWindow, protocol, session, shell } from "electron"
 import { contentSecurityPolicy, inlineScriptHashes } from "./csp.ts"
 import { proxyToGateway } from "./proxy.ts"
-import { contentTypeFor, isGatewayPath, staticFileFor } from "./routes.ts"
+import { contentTypeFor, isGatewayPath, localInferencePath, staticFileFor } from "./routes.ts"
 import { SessionJar } from "./session-jar.ts"
 import { loadSession, saveSession } from "./session-store.ts"
 
@@ -27,8 +27,9 @@ const SCHEME = "app"
 const HOST = "studio"
 const ORIGIN = `${SCHEME}://${HOST}`
 
-const { STUDIO_GATEWAY_URL } = process.env
+const { STUDIO_GATEWAY_URL, LOCAL_INFERENCE_URL } = process.env
 const gateway = new URL(STUDIO_GATEWAY_URL ?? "http://localhost:3000")
+const localInference = new URL(LOCAL_INFERENCE_URL ?? "http://127.0.0.1:8084")
 const here = path.dirname(fileURLToPath(import.meta.url))
 const webRoot = app.isPackaged
   ? path.join(process.resourcesPath, "web")
@@ -103,6 +104,15 @@ app.whenReady().then(() => {
       return proxyToGateway(request, { gateway, jar, onJarChange: persist }).catch(
         () => new Response(null, { status: 503 }),
       )
+    }
+    const control = localInferencePath(url.pathname)
+    if (control !== null) {
+      // The supervisor's control API carries no session; only its control header is passed on.
+      const header = request.headers.get("x-studio-control")
+      return fetch(new URL(control, localInference), {
+        method: request.method,
+        headers: header === null ? {} : { "x-studio-control": header },
+      }).catch(() => new Response(null, { status: 503 }))
     }
     return serveStatic(url.pathname)
   })
