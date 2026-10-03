@@ -1,5 +1,6 @@
-import { useAtom } from "@effect/atom-react"
+import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { StudioMark, ThemeToggle } from "@studio/ui"
+import { Button } from "@studio/ui/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -13,17 +14,29 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@studio/ui/components/ui/sidebar"
-import { SquarePen } from "lucide-react"
+import { Link, useRouterState } from "@tanstack/react-router"
+import { AsyncResult } from "effect/unstable/reactivity"
+import { Cpu, LogOut, SquarePen } from "lucide-react"
+import { conversationsAtom } from "../state/conversations.ts"
+import { sessionAtom, signOutAtom } from "../state/session.ts"
 import { themePreferenceAtom } from "../state/theme.ts"
+import { SidebarConversation } from "./sidebar-conversation.tsx"
 
 const placeholderRows = ["recent-1", "recent-2", "recent-3"]
 
-/**
- * The conversation sidebar. In v0 the recent list is a skeleton: conversations arrive with the
- * `AtomHttpApi` surface over `@camena-ai/contracts` (§13).
- */
+/** The conversation sidebar: new chat, the seat's conversations (`GET /v1/conversations`), the user. */
 export function AppSidebar() {
   const [theme, setTheme] = useAtom(themePreferenceAtom)
+  const session = useAtomValue(sessionAtom)
+  const signOut = useAtomSet(signOutAtom)
+  const email = AsyncResult.isSuccess(session) ? (session.value?.user.email ?? "") : ""
+  const conversations = useAtomValue(conversationsAtom)
+  const onInference = useRouterState({
+    select: (state) => state.location.pathname === "/inference",
+  })
+  const activeId = useRouterState({
+    select: (state) => (state.location.pathname.match(/^\/c\/([^/]+)/) ?? [])[1],
+  })
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader className="titlebar-drag">
@@ -37,9 +50,19 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive>
-                  <SquarePen />
-                  <span>New chat</span>
+                <SidebarMenuButton asChild isActive={activeId === undefined && !onInference}>
+                  <Link to="/">
+                    <SquarePen />
+                    <span>New chat</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={onInference}>
+                  <Link to="/inference">
+                    <Cpu />
+                    <span>Local inference</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -49,19 +72,38 @@ export function AppSidebar() {
           <SidebarGroupLabel>Recent</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {placeholderRows.map((key) => (
-                <SidebarMenuItem key={key}>
-                  <SidebarMenuSkeleton />
-                </SidebarMenuItem>
-              ))}
+              {AsyncResult.isSuccess(conversations)
+                ? conversations.value.conversations.map((conversation) => (
+                    <SidebarConversation
+                      key={conversation.id}
+                      conversation={conversation}
+                      active={activeId === conversation.id}
+                    />
+                  ))
+                : placeholderRows.map((key) => (
+                    <SidebarMenuItem key={key}>
+                      <SidebarMenuSkeleton />
+                    </SidebarMenuItem>
+                  ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground">Not signed in</span>
-          <ThemeToggle theme={theme} onThemeChange={setTheme} />
+        <div className="flex items-center justify-between gap-2 px-1">
+          <span className="truncate text-xs text-muted-foreground">{email}</span>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Sign out"
+              onClick={() => signOut()}
+            >
+              <LogOut />
+            </Button>
+            <ThemeToggle theme={theme} onThemeChange={setTheme} />
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>

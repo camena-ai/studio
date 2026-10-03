@@ -19,6 +19,7 @@
     "effect": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "rehype-harden": "catalog:",
     "streamdown": "catalog:",
     "tailwindcss": "catalog:"
   },

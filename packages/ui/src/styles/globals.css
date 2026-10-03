@@ -80,3 +80,9 @@
 @utility titlebar-no-drag {
   -webkit-app-region: no-drag;
 }
+
+/* The desktop app sets `data-window-chrome="inset"` on <html>: the window's traffic lights sit
+   over the top-left corner, so a drag strip starts after them. */
+:root[data-window-chrome="inset"] .titlebar-drag {
+  padding-left: 76px;
+}

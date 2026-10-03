@@ -14,7 +14,7 @@ The public client monorepo for Studio, `camena-ai/studio`: the web SPA and the E
 
 ## Current state
 
-The v0 shell exists: `apps/web` runs and renders the new-chat screen (sidebar, top bar, mark, composer, hint) in light and dark on top of `packages/ui`, which holds the design tokens, vendored shadcn/ui Radix items and Studio's own presentational components. `apps/web` consumes `@camena-ai/contracts` 0.1.0: `src/api/studio-api.ts` holds the `AtomHttpApi` client for `StudioApi` and `healthAtom` (`GET /health`, tested for `200` and `503`), which nothing renders yet; in production CloudFront forwards only `/v1/*` and `/api/auth/*`, so `/health` is plumbing, not a feature. The model list is still a synthetic fixture and submitting clears the draft. `apps/desktop/src/index.ts` is still a placeholder whose header names the sections it owns. The clients are milestone 8 of the build order; conversation state, AI Elements and the shadcn chat components arrive with the turn endpoints of later contract versions. When a package gains real code, add its build, packaging or spike commands to this file in the same PR.
+`apps/web` is a working client over the gateway on `@camena-ai/contracts` 0.13.0: sign-in on the gateway's Better Auth session (`api/auth.ts`, `state/session.ts`, `SessionGate`; the first org is activated when the session has none), conversations listed and opened at `/c/$conversationId`, turns streamed through `sendTurnAtom` and folded by `state/turn.ts`, models from `GET /v1/models`, and assistant Markdown through Streamdown with the locked harden configuration in `components/message-content.tsx`. Not yet built: message actions (edit, delete, fork, the taint exits), attachments, the admin surfaces. `apps/desktop` serves the same build over `app://studio` with a main-process proxy for `/v1/*`, `/api/auth/*` and `/health` that keeps the session cookie in the main process (`SessionJar`, persisted with `safeStorage`); sign-in is the web form through that proxy until the gateway enables Better Auth's Electron plugin and the RFC 8252 flow replaces it. The `LocalEngine`, the encrypted cache, signing, notarization and auto-update are still to come. When a package gains real code, add its build, packaging or spike commands to this file in the same PR.
 
 ### Design system
 
@@ -51,7 +51,10 @@ pnpm test                    # turbo run test (vitest run in every package)
 pnpm vitest                  # all projects in one process, from the root config
 pnpm e2e                     # turbo run e2e (playwright test in apps/web; no config yet)
 pnpm dev                     # turbo run dev (vite in apps/web on http://localhost:5173)
-pnpm build                   # turbo run build (vite build in apps/web; the desktop app will bundle it)
+                             # proxies /v1, /api/auth, /health to STUDIO_GATEWAY_URL (default :3000)
+pnpm build                   # turbo run build (vite build in apps/web; tsc for the desktop main process)
+pnpm --filter @studio/desktop start     # web build + main process, then electron . (gateway: STUDIO_GATEWAY_URL)
+pnpm --filter @studio/desktop package   # unsigned macOS .app in apps/desktop/release via pnpm deploy --prod
 pnpm dlx shadcn@4.21.0 add <item> -c packages/ui   # vendor a registry item (see docs/design-system.md)
 pnpm licenses:check          # production dependency license allowlist (scripts/check-licenses.ts)
 pnpm reuse:lint              # REUSE 3.3 compliance via uvx

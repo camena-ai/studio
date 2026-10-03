@@ -2,3 +2,6 @@
 
 /* Tailwind only scans this app by default; the shared components live in packages/ui. */
 @source "../../../packages/ui/src";
+
+/* Streamdown's rendered Markdown carries Tailwind classes from its own build. */
+@source "../../../node_modules/streamdown/dist/*.js";

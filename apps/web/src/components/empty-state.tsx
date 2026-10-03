@@ -1,31 +1,41 @@
-import { useAtom } from "@effect/atom-react"
-import { type ModelOption, PromptComposer, StudioMark } from "@studio/ui"
-import { models } from "../fixtures/models.ts"
-import { composerDraftAtom, selectedModelIdAtom } from "../state/composer.ts"
+import { useAtomSet } from "@effect/atom-react"
+import { StudioMark } from "@studio/ui"
+import { useNavigate } from "@tanstack/react-router"
+import { Exit } from "effect"
+import { useState } from "react"
+import { startChatAtom } from "../state/conversations.ts"
+import { ChatComposer } from "./chat-composer.tsx"
 
-/** The new-chat screen: mark, composer and the sign-in hint. */
+/** The new-chat screen: the mark and the composer. Sending creates the conversation and opens it. */
 export function EmptyState() {
-  const [draft, setDraft] = useAtom(composerDraftAtom)
-  const [modelId, setModelId] = useAtom(selectedModelIdAtom)
-  const model = models.find((option) => option.id === modelId) ?? (models[0] as ModelOption)
+  const startChat = useAtomSet(startChatAtom, { mode: "promiseExit" })
+  const navigate = useNavigate()
+  const [failed, setFailed] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const send = async (text: string, model: string) => {
+    setBusy(true)
+    setFailed(false)
+    const exit = await startChat({ text, model })
+    setBusy(false)
+    if (Exit.isSuccess(exit)) {
+      await navigate({ to: "/c/$conversationId", params: { conversationId: exit.value } })
+    } else {
+      setFailed(true)
+    }
+  }
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-4 pb-16">
       <div className="flex w-full max-w-2xl flex-col items-center gap-8">
         <StudioMark className="size-20" />
         <div className="flex w-full flex-col gap-3">
-          <PromptComposer
-            value={draft}
-            onValueChange={setDraft}
-            onSubmit={() => setDraft("")}
-            model={model}
-            models={models}
-            onModelChange={setModelId}
-          />
-          <p className="flex items-center gap-2 px-4 text-sm text-muted-foreground">
-            <span>Choose local or sign in</span>
-            <span className="size-1 rounded-full bg-muted-foreground/60" aria-hidden="true" />
-          </p>
+          <ChatComposer onSend={send} busy={busy} />
+          {failed && (
+            <p role="alert" className="px-4 text-sm text-destructive">
+              The conversation could not be created. Try again.
+            </p>
+          )}
         </div>
       </div>
     </main>
