@@ -27,7 +27,9 @@ const SCHEME = "app"
 const HOST = "studio"
 const ORIGIN = `${SCHEME}://${HOST}`
 
-const { STUDIO_GATEWAY_URL, LOCAL_INFERENCE_URL } = process.env
+const { STUDIO_GATEWAY_URL, LOCAL_INFERENCE_URL, STUDIO_USER_DATA } = process.env
+// A separate profile (session jar, cache) for tests and second accounts.
+if (STUDIO_USER_DATA) app.setPath("userData", STUDIO_USER_DATA)
 const gateway = new URL(STUDIO_GATEWAY_URL ?? "http://127.0.0.1:3000")
 const localInference = new URL(LOCAL_INFERENCE_URL ?? "http://127.0.0.1:8084")
 const here = path.dirname(fileURLToPath(import.meta.url))
