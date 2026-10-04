@@ -168,8 +168,8 @@ catalogs:
       specifier: 2.5.14
       version: 2.5.14
     '@camena-ai/contracts':
-      specifier: 0.13.0
-      version: 0.13.0
+      specifier: 0.17.0
+      version: 0.17.0
     '@effect/atom-react':
       specifier: 4.0.0-rc.117
       version: 4.0.0-rc.117
@@ -316,7 +316,7 @@ importers:
     dependencies:
       '@camena-ai/contracts':
         specifier: 'catalog:'
-        version: 0.13.0(effect@4.0.0-rc.117)
+        version: 0.17.0(effect@4.0.0-rc.117)
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.0-rc.117(effect@4.0.0-rc.117)(react@19.3.0)(scheduler@0.27.0)
@@ -597,8 +597,8 @@ packages:
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
 
-  '@camena-ai/contracts@0.13.0':
-    resolution: {integrity: sha512-STFn5/RufQd5Wa9kK/GE5P3JkFserbJnUYx4SMB0cQP7ocD1EBcjP9hv/dBfo1/D9VCQejRE8rU9Uuo6+f+gHw==, tarball: https://npm.pkg.github.com/download/@camena-ai/contracts/0.13.0/c21f8851b26db1df88400ed855ba0a1d4f71d916}
+  '@camena-ai/contracts@0.17.0':
+    resolution: {integrity: sha512-7axKOcqjPK8HLMQFDTyvY57le+SvK1X8/9eLtW625v9YJ6nQRPTFtZ/uoUWySwPJzgwGjm4U2E8CTlDGkMQWKQ==, tarball: https://npm.pkg.github.com/download/@camena-ai/contracts/0.17.0/70d160707514b5aeeb93143a7745d8d6cc25060f}
     peerDependencies:
       effect: 4.0.0-rc.117
 
@@ -4111,7 +4111,7 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@camena-ai/contracts@0.13.0(effect@4.0.0-rc.117)':
+  '@camena-ai/contracts@0.17.0(effect@4.0.0-rc.117)':
     dependencies:
       effect: 4.0.0-rc.117
 

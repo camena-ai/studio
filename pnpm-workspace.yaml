@@ -36,7 +36,7 @@ catalog:
   "@effect/vitest": 4.0.0-rc.117
   # Contracts (D20): published by the platform repository; `effect` is its exact peer, so it
   # must match the version above. Bumping it is its own commit naming the contract change.
-  "@camena-ai/contracts": 0.13.0
+  "@camena-ai/contracts": 0.17.0
   # Web (D21)
   react: 19.3.0
   react-dom: 19.3.0

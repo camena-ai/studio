@@ -83,6 +83,8 @@ describe("mergeMessages", () => {
     content,
     status: "complete",
     label: author === "user" ? "clean" : null,
+    cleared: false,
+    attachments: [],
     requestedModel: null,
     resolvedRoute: "online",
     modelId: "vendor/model-a",
