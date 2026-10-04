@@ -11,7 +11,7 @@ function RootLayout() {
       <SessionGate>
         <SidebarProvider defaultOpen={false}>
           <AppSidebar />
-          <SidebarInset className="flex min-h-svh flex-col">
+          <SidebarInset className="flex h-svh flex-col overflow-hidden">
             <Outlet />
           </SidebarInset>
         </SidebarProvider>
