@@ -110,6 +110,34 @@ describe("uploadAttachmentAtom", () => {
   )
 })
 
+describe("two uploads at once", () => {
+  it.live("both settle", () =>
+    Effect.gen(function* () {
+      const ids = ["66666666-6666-4666-8666-666666666661", "66666666-6666-4666-8666-666666666662"]
+      let posts = 0
+      const { registry } = registryWith((request) => {
+        if (request.method === "POST") {
+          return Response.json({ id: ids[posts++], status: "pending" }, { status: 201 })
+        }
+        const id = new URL(request.url).pathname.split("/").at(-1)
+        return Response.json({ ...attachment("done"), id })
+      })
+      const unmount = registry.mount(uploadAttachmentAtom)
+      registry.set(uploadAttachmentAtom, new File(["a"], "a.txt", { type: "text/plain" }))
+      registry.set(uploadAttachmentAtom, new File(["b"], "b.txt", { type: "text/plain" }))
+      yield* settle(registry)
+      assert.deepStrictEqual(
+        registry.get(draftAttachmentsAtom).map((d) => [d.name, d.state]),
+        [
+          ["a.txt", "ready"],
+          ["b.txt", "ready"],
+        ],
+      )
+      unmount()
+    }),
+  )
+})
+
 describe("sendTurnAtom with attachments", () => {
   it.effect("sends the checked files' ids with the turn", () =>
     Effect.gen(function* () {

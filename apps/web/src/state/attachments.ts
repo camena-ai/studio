@@ -76,16 +76,19 @@ const uploadError = (error: unknown): string => {
 export const uploadAttachmentAtom = StudioApiClient.runtime.fn(
   Effect.fnUntraced(function* (file: File, get) {
     const client = yield* StudioApiClient
+    // Read and write through the registry: reading through `get` would make this atom depend on
+    // the drafts, and a second upload changing them would then interrupt this one.
+    const registry = get.registry
     const key = crypto.randomUUID()
     const update = (patch: Partial<DraftAttachment>) =>
-      get.set(
+      registry.set(
         draftAttachmentsAtom,
-        get(draftAttachmentsAtom).map((d: DraftAttachment) =>
-          d.key === key ? { ...d, ...patch } : d,
-        ),
+        registry
+          .get(draftAttachmentsAtom)
+          .map((d: DraftAttachment) => (d.key === key ? { ...d, ...patch } : d)),
       )
-    get.set(draftAttachmentsAtom, [
-      ...get(draftAttachmentsAtom),
+    registry.set(draftAttachmentsAtom, [
+      ...registry.get(draftAttachmentsAtom),
       {
         key,
         name: file.name,
@@ -109,7 +112,10 @@ export const uploadAttachmentAtom = StudioApiClient.runtime.fn(
         ),
       )
     update({ id: created.id, state: "checking" })
-    get.set(attachmentNamesAtom, new Map(get(attachmentNamesAtom)).set(created.id, file.name))
+    registry.set(
+      attachmentNamesAtom,
+      new Map(registry.get(attachmentNamesAtom)).set(created.id, file.name),
+    )
 
     // Extraction and classification run in the worker; poll until they settle (about 2 min max).
     const settled = yield* client.attachments.get({ params: { id: created.id } }).pipe(

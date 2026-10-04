@@ -59,17 +59,18 @@ export const sendTurnAtom = Atom.family((id: ConversationId) =>
       const client = yield* StudioApiClient
       const registry = get.registry
       const live = liveTurnAtom(id)
+      // Through the registry, so the turn never depends on, or is re-run by, its own overlay.
       const update = (f: (turn: LiveTurn) => LiveTurn) => {
-        const current = get(live)
-        if (current !== null) get.set(live, f(current))
+        const current = registry.get(live)
+        if (current !== null) registry.set(live, f(current))
       }
       // A new chat's first message stays pending until the gateway has the turn, so a view that
       // remounts first sends it again under the same key and the gateway replays it.
       const settleFirstTurn = () => {
-        if (get(firstTurnAtom)?.conversationId === id) get.set(firstTurnAtom, null)
+        if (registry.get(firstTurnAtom)?.conversationId === id) registry.set(firstTurnAtom, null)
       }
       const attachments = input.attachments ?? []
-      get.set(live, beginTurn(input.text, input.model, attachments))
+      registry.set(live, beginTurn(input.text, input.model, attachments))
       yield* client.conversations
         .turn({
           params: { id },
