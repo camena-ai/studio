@@ -27,7 +27,15 @@ export interface ChatMessage {
   readonly route: ResolvedRoute | null
   readonly modelId: string | null
   readonly blockedReason?: string
+  /** Files on a user message (contracts 0.14); empty otherwise. */
+  readonly attachments: ReadonlyArray<ChatAttachment>
   readonly error?: { readonly code: ErrorCode; readonly reason?: ErrorReason }
+}
+
+export interface ChatAttachment {
+  readonly id: string
+  readonly label: MessageLabel | null
+  readonly mime: string | null
 }
 
 export interface LiveTurn {
@@ -40,7 +48,11 @@ export interface LiveTurn {
   readonly refusal?: string
 }
 
-export const beginTurn = (text: string, model: string): LiveTurn => ({
+export const beginTurn = (
+  text: string,
+  model: string,
+  attachments: ReadonlyArray<ChatAttachment> = [],
+): LiveTurn => ({
   assistantId: null,
   finished: false,
   user: {
@@ -51,6 +63,7 @@ export const beginTurn = (text: string, model: string): LiveTurn => ({
     label: null,
     route: null,
     modelId: model,
+    attachments,
   },
   assistant: {
     key: "pending-assistant",
@@ -60,6 +73,7 @@ export const beginTurn = (text: string, model: string): LiveTurn => ({
     label: null,
     route: null,
     modelId: null,
+    attachments: [],
   },
 })
 
@@ -141,6 +155,7 @@ export const fromMessage = (message: Message): ChatMessage => ({
   label: message.label,
   route: message.resolvedRoute,
   modelId: message.modelId,
+  attachments: message.attachments,
 })
 
 /**

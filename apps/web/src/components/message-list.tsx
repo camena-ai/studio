@@ -1,5 +1,8 @@
+import { useAtomValue } from "@effect/atom-react"
+import { AttachmentChip } from "@studio/ui"
 import { cn } from "@studio/ui/lib/utils"
 import { Ban, ShieldAlert, TriangleAlert } from "lucide-react"
+import { attachmentName, attachmentNamesAtom } from "../state/attachments.ts"
 import type { ChatMessage } from "../state/turn.ts"
 import { MessageContent } from "./message-content.tsx"
 
@@ -74,6 +77,7 @@ export function MessageList({
   readonly messages: ReadonlyArray<ChatMessage>
   readonly refusal?: string | undefined
 }) {
+  const names = useAtomValue(attachmentNamesAtom)
   return (
     <ol className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6">
       {messages.map((message) =>
@@ -82,6 +86,18 @@ export function MessageList({
             <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-muted px-4 py-2.5">
               {message.content}
             </div>
+            {message.attachments.length > 0 && (
+              <div className="flex max-w-[85%] flex-wrap justify-end gap-2">
+                {message.attachments.map((attachment) => (
+                  <AttachmentChip
+                    key={attachment.id}
+                    name={attachmentName(names, attachment)}
+                    state="ready"
+                    label={attachment.label}
+                  />
+                ))}
+              </div>
+            )}
             <LabelBadge label={message.label} />
           </li>
         ) : (

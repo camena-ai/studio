@@ -12,6 +12,11 @@
  * - Never fork or vendor code from LibreChat, Open WebUI, LobeChat, Cherry Studio or any other
  *   AGPL, GPL or branding-restricted project (D12, D20).
  */
+export {
+  AttachmentChip,
+  type AttachmentChipProps,
+  type AttachmentChipState,
+} from "./components/attachment-chip.tsx"
 export type { ModelOption, ModelRoute } from "./components/model.ts"
 export { ModelChip, type ModelChipProps } from "./components/model-chip.tsx"
 export { PromptComposer, type PromptComposerProps } from "./components/prompt-composer.tsx"

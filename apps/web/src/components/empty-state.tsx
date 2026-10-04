@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { Exit } from "effect"
 import { useState } from "react"
 import { startChatAtom } from "../state/conversations.ts"
-import { ChatComposer } from "./chat-composer.tsx"
+import { ChatComposer, type SentAttachment } from "./chat-composer.tsx"
 
 /** The new-chat screen: the mark and the composer. Sending creates the conversation and opens it. */
 export function EmptyState() {
@@ -13,10 +13,10 @@ export function EmptyState() {
   const [failed, setFailed] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const send = async (text: string, model: string) => {
+  const send = async (text: string, model: string, attachments: ReadonlyArray<SentAttachment>) => {
     setBusy(true)
     setFailed(false)
-    const exit = await startChat({ text, model })
+    const exit = await startChat({ text, model, attachments })
     setBusy(false)
     if (Exit.isSuccess(exit)) {
       await navigate({ to: "/c/$conversationId", params: { conversationId: exit.value } })

@@ -62,7 +62,9 @@ export function ConversationView({ id }: { readonly id: ConversationId }) {
         <div className="mx-auto w-full max-w-2xl px-4 pb-6">
           <ChatComposer
             busy={streaming}
-            onSend={(text, model) => sendTurn({ text, model, idempotencyKey: crypto.randomUUID() })}
+            onSend={(text, model, attachments) =>
+              sendTurn({ text, model, attachments, idempotencyKey: crypto.randomUUID() })
+            }
           />
         </div>
       </main>

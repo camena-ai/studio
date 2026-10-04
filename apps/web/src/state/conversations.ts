@@ -6,10 +6,11 @@
  * not kept alive, so unmounting the conversation interrupts its fiber, which closes the SSE
  * connection: the client side of the gateway's disconnect → abort contract.
  */
-import type { ConversationId } from "@camena-ai/contracts"
+import type { AttachmentId, ConversationId } from "@camena-ai/contracts"
 import { Effect, Stream } from "effect"
 import { Atom } from "effect/unstable/reactivity"
 import { StudioApiClient } from "../api/studio-api.ts"
+import type { ChatAttachment } from "./turn.ts"
 import { beginTurn, foldTurn, type LiveTurn } from "./turn.ts"
 
 export const conversationsAtom = StudioApiClient.query("conversations", "list", {
@@ -32,6 +33,8 @@ export interface TurnInput {
   readonly model: string
   /** Reused on a retry, so the gateway replays a finished turn rather than running it twice. */
   readonly idempotencyKey: string
+  /** Checked files the message carries (contracts 0.14). */
+  readonly attachments?: ReadonlyArray<ChatAttachment & { readonly id: AttachmentId }>
 }
 
 /** Why the gateway refused a turn before streaming it; codes only. */
@@ -65,11 +68,16 @@ export const sendTurnAtom = Atom.family((id: ConversationId) =>
       const settleFirstTurn = () => {
         if (get(firstTurnAtom)?.conversationId === id) get.set(firstTurnAtom, null)
       }
-      get.set(live, beginTurn(input.text, input.model))
+      const attachments = input.attachments ?? []
+      get.set(live, beginTurn(input.text, input.model, attachments))
       yield* client.conversations
         .turn({
           params: { id },
-          payload: { text: input.text, model: input.model },
+          payload: {
+            text: input.text,
+            model: input.model,
+            ...(attachments.length === 0 ? {} : { attachmentIds: attachments.map((a) => a.id) }),
+          },
           headers: { "idempotency-key": input.idempotencyKey },
         })
         .pipe(
