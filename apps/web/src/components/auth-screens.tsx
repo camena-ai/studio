@@ -1,18 +1,19 @@
 import { useAtom } from "@effect/atom-react"
-import { StudioMark } from "@studio/ui"
+import { YelMark } from "@studio/ui"
 import { Button } from "@studio/ui/components/ui/button"
 import { Input } from "@studio/ui/components/ui/input"
 import { Option } from "effect"
 import { AsyncResult } from "effect/unstable/reactivity"
 import { type FormEvent, type ReactNode, useId, useState } from "react"
 import { AuthFailed } from "../api/auth.ts"
+import { APP_NAME } from "../brand.ts"
 import { createOrganizationAtom, signInAtom, signUpAtom } from "../state/session.ts"
 
 /** A short, credential-free explanation of a failed auth call. */
 export function authErrorMessage(result: AsyncResult.AsyncResult<unknown, unknown>): string | null {
   if (!AsyncResult.isFailure(result)) return null
   const error = Option.getOrUndefined(AsyncResult.error(result))
-  if (!(error instanceof AuthFailed)) return "Studio could not be reached. Try again."
+  if (!(error instanceof AuthFailed)) return `${APP_NAME} could not be reached. Try again.`
   switch (error.code) {
     case "INVALID_EMAIL_OR_PASSWORD":
       return "Wrong email or password."
@@ -47,12 +48,23 @@ function Field({
   )
 }
 
-function Card({ title, children }: { readonly title: string; readonly children: ReactNode }) {
+function Card({
+  title,
+  subtitle,
+  children,
+}: {
+  readonly title: string
+  readonly subtitle?: string
+  readonly children: ReactNode
+}) {
   return (
     <main className="flex min-h-svh flex-1 items-center justify-center px-4">
       <div className="flex w-full max-w-sm flex-col items-center gap-6">
-        <StudioMark className="size-14" />
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <YelMark className="size-16 text-foreground" />
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h1 className="text-2xl font-semibold">{title}</h1>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
         {children}
       </div>
     </main>
@@ -100,7 +112,10 @@ export function SignInScreen() {
     else signIn({ email, password })
   }
   return (
-    <Card title={signingUp ? "Create your account" : "Sign in to Studio"}>
+    <Card
+      title={signingUp ? "Join the order" : `Sign in to ${APP_NAME}`}
+      subtitle="A private assistant, saddled on your own machine."
+    >
       <form onSubmit={submit} className="flex w-full flex-col gap-4">
         {signingUp && (
           <Field

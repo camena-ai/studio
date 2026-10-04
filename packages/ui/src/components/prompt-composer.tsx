@@ -75,7 +75,7 @@ export function PromptComposer({
   value,
   onValueChange,
   onSubmit,
-  placeholder = "Ask Studio anything",
+  placeholder = "Ask anything",
   model,
   models,
   onModelChange,

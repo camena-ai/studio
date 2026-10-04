@@ -1,4 +1,5 @@
 import { useAtom, useAtomRefresh, useAtomValue } from "@effect/atom-react"
+import { Windmill } from "@studio/ui"
 import { Button } from "@studio/ui/components/ui/button"
 import { cn } from "@studio/ui/lib/utils"
 import { Option } from "effect"
@@ -6,6 +7,7 @@ import { AsyncResult } from "effect/unstable/reactivity"
 import { Pause, Play, TriangleAlert } from "lucide-react"
 import { useEffect } from "react"
 import { type InferenceStatus, InferenceUnavailable } from "../api/local-inference.ts"
+import { APP_NAME } from "../brand.ts"
 import {
   formatBytes,
   formatDuration,
@@ -65,8 +67,19 @@ function StatusView({ status }: { readonly status: InferenceStatus }) {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
-      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-5 py-4">
-        <div className="flex flex-col gap-1">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold">Rocinante's stable</h1>
+        <p className="text-sm text-muted-foreground">
+          The local model that carries {APP_NAME}. Pause it to free its memory; start it before a
+          ride.
+        </p>
+      </header>
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card px-5 py-4">
+        <Windmill
+          spinning={status.state === "running" || status.state === "starting"}
+          className="size-14 shrink-0 text-foreground/80"
+        />
+        <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-2">
             <span
               className={cn("size-2.5 rounded-full", STATE_DOT[status.state])}

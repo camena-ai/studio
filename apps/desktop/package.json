@@ -23,8 +23,8 @@
     "vitest": "catalog:"
   },
   "build": {
-    "appId": "ai.camena.studio",
-    "productName": "Studio",
+    "appId": "dev.yel.app",
+    "productName": "Yel",
     "directories": {
       "output": "../release"
     },
@@ -43,7 +43,8 @@
       "target": [
         "dir"
       ],
-      "identity": null
+      "identity": null,
+      "icon": "resources/icon.icns"
     }
   }
 }

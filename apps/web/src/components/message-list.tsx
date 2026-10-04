@@ -1,5 +1,5 @@
 import { useAtomValue } from "@effect/atom-react"
-import { AttachmentChip } from "@studio/ui"
+import { AttachmentChip, KnightAvatar } from "@studio/ui"
 import { cn } from "@studio/ui/lib/utils"
 import { Ban, ShieldAlert, TriangleAlert } from "lucide-react"
 import { attachmentName, attachmentNamesAtom } from "../state/attachments.ts"
@@ -101,11 +101,19 @@ export function MessageList({
             <LabelBadge label={message.label} />
           </li>
         ) : (
-          <li key={message.key} className={cn("flex flex-col gap-2")}>
-            <AssistantBody message={message} refusal={refusal} />
-            {message.modelId && message.status === "complete" && (
-              <span className="text-xs text-muted-foreground">{message.modelId}</span>
-            )}
+          <li key={message.key} className="flex gap-3">
+            <KnightAvatar
+              className={cn(
+                "size-10 text-foreground/80",
+                message.status === "streaming" && "motion-safe:animate-pulse",
+              )}
+            />
+            <div className="flex min-w-0 flex-1 flex-col gap-2 font-serif text-[1.0625rem]">
+              <AssistantBody message={message} refusal={refusal} />
+              {message.modelId && message.status === "complete" && (
+                <span className="font-sans text-xs text-muted-foreground">{message.modelId}</span>
+              )}
+            </div>
           </li>
         ),
       )}

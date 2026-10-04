@@ -1,10 +1,10 @@
-# Studio design system
+# Yel design system
 
-This file describes the Studio client look for Claude Design and for anyone generating new screens. It mirrors `packages/ui/src/styles/tokens.css`, which is the source of truth: change a value there, then here, and `apps/web/src/design-md.test.ts` fails if a token goes missing from this file. Components live in `packages/ui` (shadcn/ui, Radix flavour, plus Studio's own); run `/design-sync` from the repository root to push them to a Claude Design project.
+This file describes the Yel client look for Claude Design and for anyone generating new screens. It mirrors `packages/ui/src/styles/tokens.css`, which is the source of truth: change a value there, then here, and `apps/web/src/design-md.test.ts` fails if a token goes missing from this file. Components live in `packages/ui` (shadcn/ui, Radix flavour, plus Studio's own); run `/design-sync` from the repository root to push them to a Claude Design project.
 
 ## 1. Visual theme and atmosphere
 
-Studio is a calm, chromeless assistant for people who handle sensitive material at work. The canvas is empty until the user types; a small friendly mark and one composer card carry the whole first screen. Density is low, contrast is moderate, motion is minimal. Nothing shouts except the one primary action. Dark is the default mood of the reference design (near-black canvas, one slightly lighter card); light is its exact mirror, not an afterthought.
+Yel takes its name from the Turkish word for wind and from the *yelmo*, the barber's basin Don Quixote wore as Mambrino's helmet; the look is La Mancha in an old engraving. By day the canvas is parchment and the text sepia ink, with one terracotta primary; by night it is candle-lit umber with an ochre primary. Illustrations are line engravings in the text colour: a windmill for the mark, the knight in profile as the assistant's avatar, and the charge at the windmills on the new-chat screen. They ink themselves in `currentColor`, so they follow the theme and never introduce a colour of their own. Density stays low and motion minimal: the only movement is the status page's windmill turning while the model runs (still under `prefers-reduced-motion`).
 
 Two things a generic chat app does not show must always be visible when present: a message's classification label and a blocked route. They use the `destructive` and `muted` roles below, never a colour outside the system.
 
@@ -14,46 +14,46 @@ All values are OKLCH. Light values live in `:root`, dark values in `.dark` on `<
 
 | Token | Light | Dark | Role |
 |---|---|---|---|
-| `--background` | `oklch(1 0 0)` | `oklch(0.2 0 0)` | Page canvas |
-| `--foreground` | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` | Default text on the canvas |
-| `--card` | `oklch(1 0 0)` | `oklch(0.235 0 0)` | Raised surfaces: the composer, dialogs, popovers |
-| `--card-foreground` | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` | Text on card |
-| `--popover` | `oklch(1 0 0)` | `oklch(0.235 0 0)` | Menus and tooltips |
-| `--popover-foreground` | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` | Text on popover |
-| `--primary` | `oklch(0.205 0 0)` | `oklch(0.922 0 0)` | The one strong action (send button), active states |
-| `--primary-foreground` | `oklch(0.985 0 0)` | `oklch(0.205 0 0)` | Text and icons on primary |
-| `--secondary` | `oklch(0.97 0 0)` | `oklch(0.29 0 0)` | Quiet filled controls |
-| `--secondary-foreground` | `oklch(0.205 0 0)` | `oklch(0.985 0 0)` | Text on secondary |
-| `--muted` | `oklch(0.97 0 0)` | `oklch(0.29 0 0)` | Hover and subdued fills |
-| `--muted-foreground` | `oklch(0.556 0 0)` | `oklch(0.708 0 0)` | Secondary text, hints, icons at rest |
-| `--accent` | `oklch(0.97 0 0)` | `oklch(0.29 0 0)` | Selected menu rows, hover on ghost buttons |
-| `--accent-foreground` | `oklch(0.205 0 0)` | `oklch(0.985 0 0)` | Text on accent |
-| `--destructive` | `oklch(0.577 0.245 27.325)` | `oklch(0.704 0.191 22.216)` | Errors and destructive actions |
-| `--border` | `oklch(0.922 0 0)` | `oklch(1 0 0 / 10%)` | Hairlines and control outlines |
-| `--input` | `oklch(0.922 0 0)` | `oklch(1 0 0 / 15%)` | Form control outline and fill in dark |
-| `--ring` | `oklch(0.708 0 0)` | `oklch(0.556 0 0)` | Focus ring |
-| `--chart-1` | `oklch(0.646 0.222 41.116)` | `oklch(0.488 0.243 264.376)` | Data series 1 |
-| `--chart-2` | `oklch(0.6 0.118 184.704)` | `oklch(0.696 0.17 162.48)` | Data series 2 |
-| `--chart-3` | `oklch(0.398 0.07 227.392)` | `oklch(0.769 0.188 70.08)` | Data series 3 |
-| `--chart-4` | `oklch(0.828 0.189 84.429)` | `oklch(0.627 0.265 303.9)` | Data series 4 |
-| `--chart-5` | `oklch(0.769 0.188 70.08)` | `oklch(0.645 0.246 16.439)` | Data series 5 |
-| `--radius` | `0.625rem` | `0.625rem` | Base radius; the scale derives from it |
-| `--sidebar` | `oklch(0.985 0 0)` | `oklch(0.17 0 0)` | Sidebar canvas |
-| `--sidebar-foreground` | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` | Sidebar text |
-| `--sidebar-primary` | `oklch(0.205 0 0)` | `oklch(0.922 0 0)` | Sidebar strong action |
-| `--sidebar-primary-foreground` | `oklch(0.985 0 0)` | `oklch(0.205 0 0)` | Text on sidebar primary |
-| `--sidebar-accent` | `oklch(0.97 0 0)` | `oklch(0.27 0 0)` | Sidebar hover and active rows |
-| `--sidebar-accent-foreground` | `oklch(0.205 0 0)` | `oklch(0.985 0 0)` | Text on sidebar accent |
-| `--sidebar-border` | `oklch(0.922 0 0)` | `oklch(1 0 0 / 10%)` | Sidebar hairlines |
-| `--sidebar-ring` | `oklch(0.708 0 0)` | `oklch(0.556 0 0)` | Sidebar focus ring |
+| `--background` | `oklch(0.972 0.016 84)` | `oklch(0.2 0.016 62)` | Page canvas |
+| `--foreground` | `oklch(0.27 0.03 55)` | `oklch(0.93 0.025 84)` | Default text on the canvas |
+| `--card` | `oklch(0.988 0.01 84)` | `oklch(0.24 0.018 62)` | Raised surfaces: the composer, dialogs, popovers |
+| `--card-foreground` | `oklch(0.27 0.03 55)` | `oklch(0.93 0.025 84)` | Text on card |
+| `--popover` | `oklch(0.988 0.01 84)` | `oklch(0.24 0.018 62)` | Menus and tooltips |
+| `--popover-foreground` | `oklch(0.27 0.03 55)` | `oklch(0.93 0.025 84)` | Text on popover |
+| `--primary` | `oklch(0.47 0.12 38)` | `oklch(0.76 0.12 72)` | The one strong action (send button), active states |
+| `--primary-foreground` | `oklch(0.975 0.014 84)` | `oklch(0.2 0.02 60)` | Text and icons on primary |
+| `--secondary` | `oklch(0.935 0.022 82)` | `oklch(0.29 0.02 62)` | Quiet filled controls |
+| `--secondary-foreground` | `oklch(0.3 0.03 55)` | `oklch(0.93 0.025 84)` | Text on secondary |
+| `--muted` | `oklch(0.935 0.022 82)` | `oklch(0.29 0.02 62)` | Hover and subdued fills |
+| `--muted-foreground` | `oklch(0.5 0.035 62)` | `oklch(0.72 0.035 78)` | Secondary text, hints, icons at rest |
+| `--accent` | `oklch(0.92 0.028 80)` | `oklch(0.3 0.024 62)` | Selected menu rows, hover on ghost buttons |
+| `--accent-foreground` | `oklch(0.3 0.03 55)` | `oklch(0.93 0.025 84)` | Text on accent |
+| `--destructive` | `oklch(0.53 0.19 28)` | `oklch(0.68 0.17 28)` | Errors and destructive actions |
+| `--border` | `oklch(0.875 0.03 78)` | `oklch(0.93 0.025 84 / 12%)` | Hairlines and control outlines |
+| `--input` | `oklch(0.875 0.03 78)` | `oklch(0.93 0.025 84 / 16%)` | Form control outline and fill in dark |
+| `--ring` | `oklch(0.62 0.09 62)` | `oklch(0.6 0.08 70)` | Focus ring |
+| `--chart-1` | `oklch(0.47 0.12 38)` | `oklch(0.76 0.12 72)` | Data series 1 |
+| `--chart-2` | `oklch(0.66 0.13 75)` | `oklch(0.66 0.13 38)` | Data series 2 |
+| `--chart-3` | `oklch(0.52 0.08 125)` | `oklch(0.68 0.09 125)` | Data series 3 |
+| `--chart-4` | `oklch(0.48 0.06 240)` | `oklch(0.68 0.07 240)` | Data series 4 |
+| `--chart-5` | `oklch(0.42 0.1 10)` | `oklch(0.62 0.12 10)` | Data series 5 |
+| `--radius` | `0.5rem` | `0.5rem` | Base radius; the scale derives from it |
+| `--sidebar` | `oklch(0.952 0.022 82)` | `oklch(0.175 0.015 62)` | Sidebar canvas |
+| `--sidebar-foreground` | `oklch(0.27 0.03 55)` | `oklch(0.93 0.025 84)` | Sidebar text |
+| `--sidebar-primary` | `oklch(0.47 0.12 38)` | `oklch(0.76 0.12 72)` | Sidebar strong action |
+| `--sidebar-primary-foreground` | `oklch(0.975 0.014 84)` | `oklch(0.2 0.02 60)` | Text on sidebar primary |
+| `--sidebar-accent` | `oklch(0.915 0.03 80)` | `oklch(0.27 0.022 62)` | Sidebar hover and active rows |
+| `--sidebar-accent-foreground` | `oklch(0.27 0.03 55)` | `oklch(0.93 0.025 84)` | Text on sidebar accent |
+| `--sidebar-border` | `oklch(0.87 0.03 78)` | `oklch(0.93 0.025 84 / 12%)` | Sidebar hairlines |
+| `--sidebar-ring` | `oklch(0.62 0.09 62)` | `oklch(0.6 0.08 70)` | Sidebar focus ring |
 
-Brand colours used only by the Studio mark, fixed across themes: body `oklch(0.62 0.2 300)`, cap `oklch(0.86 0.17 92)`, base `oklch(0.68 0.2 25)`.
+The mark has no colours of its own: the windmill, the knight and the scene are drawn in `currentColor` with engraving hatches (`packages/ui/src/components/quixote`).
 
 Rules: text on any surface uses that surface's `-foreground` pair. `primary` appears once per screen. Hints and metadata use `muted-foreground`. Hairlines use `border`; in dark they are 10% white, so never draw a border in a fixed grey.
 
 ## 3. Typography
 
-System stack only, because font packages are OFL-licensed and off the dependency allowlist: `--font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` and `--font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace`. Headings use the sans stack (`--font-heading`).
+System stacks only, because font packages are OFL-licensed and off the dependency allowlist: `--font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`, `--font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Baskerville, Georgia, serif` and `--font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace`. Headings, the wordmark and the assistant's prose use the serif (`--font-heading`, `font-serif`); controls, menus and the user's own messages stay sans.
 
 | Use | Size / weight | Notes |
 |---|---|---|

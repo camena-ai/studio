@@ -2,6 +2,7 @@ import type { AttachmentId } from "@camena-ai/contracts"
 import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { AttachmentChip, type ModelOption, PromptComposer } from "@studio/ui"
 import { AsyncResult } from "effect/unstable/reactivity"
+import { APP_NAME } from "../brand.ts"
 import {
   ACCEPTED_FILES,
   type DraftAttachment,
@@ -63,6 +64,7 @@ export function ChatComposer({
         setDrafts([])
         onSend(text, model.id, toSend(drafts))
       }}
+      placeholder={`Ask ${APP_NAME} anything…`}
       model={current}
       models={options}
       onModelChange={setSelectedId}

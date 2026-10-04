@@ -13,6 +13,7 @@ pnpm --dir "$here" build
 rm -rf "$deploy"
 pnpm --dir "$root" --filter @studio/desktop deploy --prod "$deploy"
 cp -R "$here/dist" "$deploy/dist"
+cp -R "$here/resources" "$deploy/resources"
 cp -R "$root/apps/web/dist" "$deploy/web-dist"
 
 cd "$deploy"
