@@ -6,8 +6,8 @@
 
 import type { ThemePreference } from "@studio/ui"
 import { Schema } from "effect"
-import { KeyValueStore } from "effect/unstable/persistence"
-import { Atom } from "effect/unstable/reactivity"
+import { KeyValueStore } from "effect/persistence"
+import { Atom } from "effect/reactivity"
 
 export type ResolvedTheme = "light" | "dark"
 

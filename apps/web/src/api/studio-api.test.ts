@@ -1,8 +1,8 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect, Layer } from "effect"
-import { FetchHttpClient } from "effect/unstable/http"
-import { HttpApiError } from "effect/unstable/httpapi"
-import { AtomRegistry } from "effect/unstable/reactivity"
+import { FetchHttpClient } from "effect/http"
+import { HttpApiError } from "effect/http-api"
+import { AtomRegistry } from "effect/reactivity"
 import { healthAtom, httpClientLayerAtom } from "./studio-api.ts"
 
 /** A registry whose `StudioApiClient` answers every request with `respond()`. */

@@ -8,8 +8,8 @@
  */
 import { StudioApi } from "@camena-ai/contracts"
 import type { Layer } from "effect"
-import { FetchHttpClient, type HttpClient } from "effect/unstable/http"
-import { Atom, AtomHttpApi } from "effect/unstable/reactivity"
+import { FetchHttpClient, type HttpClient } from "effect/http"
+import { Atom, AtomHttpApi } from "effect/reactivity"
 
 export const httpClientLayerAtom = Atom.make<Layer.Layer<HttpClient.HttpClient>>(
   FetchHttpClient.layer,
