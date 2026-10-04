@@ -11,7 +11,7 @@ import { defineConfig } from "vite"
  * gateway's `TRUSTED_ORIGINS`.
  */
 const { STUDIO_GATEWAY_URL, LOCAL_INFERENCE_URL } = process.env
-const gateway = STUDIO_GATEWAY_URL ?? "http://localhost:3000"
+const gateway = STUDIO_GATEWAY_URL ?? "http://127.0.0.1:3000"
 /** A self-hosted model's supervisor; `/local-inference/*` maps to its `/control/*`. */
 const localInference = LOCAL_INFERENCE_URL ?? "http://127.0.0.1:8084"
 const forward = { target: gateway, changeOrigin: false, ws: false }

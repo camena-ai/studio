@@ -51,7 +51,7 @@ pnpm test                    # turbo run test (vitest run in every package)
 pnpm vitest                  # all projects in one process, from the root config
 pnpm e2e                     # turbo run e2e (playwright test in apps/web; no config yet)
 pnpm dev                     # turbo run dev (vite in apps/web on http://localhost:5173)
-                             # proxies /v1, /api/auth, /health to STUDIO_GATEWAY_URL (default :3000)
+                             # proxies /v1, /api/auth, /health to STUDIO_GATEWAY_URL (default 127.0.0.1:3000)
 pnpm build                   # turbo run build (vite build in apps/web; tsc for the desktop main process)
 pnpm --filter @studio/desktop start     # web build + main process, then electron . (gateway: STUDIO_GATEWAY_URL)
 pnpm --filter @studio/desktop package   # unsigned macOS .app in apps/desktop/release via pnpm deploy --prod
