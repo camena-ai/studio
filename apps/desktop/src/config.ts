@@ -34,14 +34,13 @@ export const resolveConfig = (
       if (typeof value === "object" && value !== null) parsed = value as Record<string, unknown>
     } catch {}
   }
+  const { STUDIO_GATEWAY_URL, LOCAL_INFERENCE_URL } = env
+  const { gatewayUrl, localInferenceUrl } = parsed
   return {
-    gateway:
-      httpUrl(env["STUDIO_GATEWAY_URL"]) ??
-      httpUrl(parsed["gatewayUrl"]) ??
-      new URL(DEFAULT_GATEWAY),
+    gateway: httpUrl(STUDIO_GATEWAY_URL) ?? httpUrl(gatewayUrl) ?? new URL(DEFAULT_GATEWAY),
     localInference:
-      httpUrl(env["LOCAL_INFERENCE_URL"]) ??
-      httpUrl(parsed["localInferenceUrl"]) ??
+      httpUrl(LOCAL_INFERENCE_URL) ??
+      httpUrl(localInferenceUrl) ??
       new URL(DEFAULT_LOCAL_INFERENCE),
   }
 }
