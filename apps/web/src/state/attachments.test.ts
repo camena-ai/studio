@@ -182,5 +182,12 @@ describe("attachmentName", () => {
       attachmentName(new Map(), { id: "x", mime: "text/csv; charset=utf-8" }),
       "CSV file",
     )
+    assert.strictEqual(
+      attachmentName(new Map(), {
+        id: "x",
+        mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+      "Excel workbook",
+    )
   })
 })
