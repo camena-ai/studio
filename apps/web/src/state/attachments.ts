@@ -17,8 +17,9 @@ import { Atom } from "effect/unstable/reactivity"
 import { StudioApiClient } from "../api/studio-api.ts"
 import { newId } from "../lib/id.ts"
 
-/** What the gateway can read (contracts 0.14): PDF, Word, plain text, Markdown, CSV. */
-export const ACCEPTED_FILES = ".pdf,.docx,.txt,.md,.markdown,.csv,text/plain,text/markdown,text/csv"
+/** What the gateway can read: PDF, Word, Excel (platform #327), plain text, Markdown, CSV. */
+export const ACCEPTED_FILES =
+  ".pdf,.docx,.xlsx,.xltx,.txt,.md,.markdown,.csv,text/plain,text/markdown,text/csv"
 
 /** At most this many files per message; the gateway's own limit is far higher. */
 export const MAX_DRAFT_FILES = 10
@@ -152,6 +153,7 @@ export const attachmentName = (
   const mime = attachment.mime ?? ""
   if (mime.startsWith("application/pdf")) return "PDF document"
   if (mime.includes("wordprocessingml")) return "Word document"
+  if (mime.includes("spreadsheetml")) return "Excel workbook"
   if (mime.startsWith("text/markdown")) return "Markdown file"
   if (mime.startsWith("text/csv")) return "CSV file"
   if (mime.startsWith("text/")) return "Text file"
