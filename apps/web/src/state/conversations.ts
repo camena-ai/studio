@@ -10,6 +10,7 @@ import type { AttachmentId, ConversationId } from "@camena-ai/contracts"
 import { Effect, Stream } from "effect"
 import { Atom } from "effect/unstable/reactivity"
 import { StudioApiClient } from "../api/studio-api.ts"
+import { newId } from "../lib/id.ts"
 import type { ChatAttachment } from "./turn.ts"
 import { beginTurn, foldTurn, type LiveTurn } from "./turn.ts"
 
@@ -116,7 +117,7 @@ export const startChatAtom = StudioApiClient.runtime.fn(
     const conversation = yield* client.conversations.create()
     get.set(firstTurnAtom, {
       conversationId: conversation.id,
-      input: { ...input, idempotencyKey: crypto.randomUUID() },
+      input: { ...input, idempotencyKey: newId() },
     })
     get.refresh(conversationsAtom)
     return conversation.id

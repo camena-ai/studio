@@ -2,6 +2,7 @@ import type { ConversationId } from "@camena-ai/contracts"
 import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { AsyncResult } from "effect/unstable/reactivity"
 import { useEffect, useRef } from "react"
+import { newId } from "../lib/id.ts"
 import {
   conversationAtom,
   firstTurnAtom,
@@ -63,7 +64,7 @@ export function ConversationView({ id }: { readonly id: ConversationId }) {
           <ChatComposer
             busy={streaming}
             onSend={(text, model, attachments) =>
-              sendTurn({ text, model, attachments, idempotencyKey: crypto.randomUUID() })
+              sendTurn({ text, model, attachments, idempotencyKey: newId() })
             }
           />
         </div>

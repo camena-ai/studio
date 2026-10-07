@@ -16,6 +16,9 @@ const gateway = STUDIO_GATEWAY_URL ?? "http://127.0.0.1:3000"
 const localInference = LOCAL_INFERENCE_URL ?? "http://127.0.0.1:8084"
 const forward = { target: gateway, changeOrigin: false, ws: false }
 
+const isLoopback = (address: string | undefined) =>
+  address === "127.0.0.1" || address === "::1" || address === "::ffff:127.0.0.1"
+
 export default defineConfig({
   plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), tailwindcss()],
   server: {
@@ -29,6 +32,10 @@ export default defineConfig({
         target: localInference,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/local-inference/, "/control"),
+        // The model runs on this machine: other devices served over the network may read its
+        // status, but only this machine starts or pauses it (Vite answers 404 for `false`).
+        bypass: (req) =>
+          req.method === "GET" || isLoopback(req.socket.remoteAddress) ? undefined : false,
       },
     },
   },

@@ -15,6 +15,7 @@ import {
 import { Duration, Effect, Schedule } from "effect"
 import { Atom } from "effect/unstable/reactivity"
 import { StudioApiClient } from "../api/studio-api.ts"
+import { newId } from "../lib/id.ts"
 
 /** What the gateway can read (contracts 0.14): PDF, Word, plain text, Markdown, CSV. */
 export const ACCEPTED_FILES = ".pdf,.docx,.txt,.md,.markdown,.csv,text/plain,text/markdown,text/csv"
@@ -79,7 +80,7 @@ export const uploadAttachmentAtom = StudioApiClient.runtime.fn(
     // Read and write through the registry: reading through `get` would make this atom depend on
     // the drafts, and a second upload changing them would then interrupt this one.
     const registry = get.registry
-    const key = crypto.randomUUID()
+    const key = newId()
     const update = (patch: Partial<DraftAttachment>) =>
       registry.set(
         draftAttachmentsAtom,
