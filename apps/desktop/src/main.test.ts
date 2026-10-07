@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import path from "node:path"
 import { describe, expect, it } from "vitest"
+import { resolveConfig } from "./config.ts"
 import { contentSecurityPolicy, inlineScriptHashes } from "./csp.ts"
 import { proxyToGateway } from "./proxy.ts"
 import { contentTypeFor, isGatewayPath, localInferencePath, staticFileFor } from "./routes.ts"
@@ -156,5 +157,26 @@ describe("contentSecurityPolicy", () => {
     expect(csp).toContain(`script-src 'self' ${hashes[0]}`)
     expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/)
     expect(csp).toContain("connect-src 'self'")
+  })
+})
+
+describe("resolveConfig", () => {
+  it("defaults to this machine", () => {
+    const config = resolveConfig({}, null)
+    expect(config.gateway.href).toBe("http://127.0.0.1:3000/")
+    expect(config.localInference.href).toBe("http://127.0.0.1:8084/")
+  })
+  it("reads config.json, and the environment wins over it", () => {
+    const file = '{"gatewayUrl":"http://studio-host.local:3000"}'
+    expect(resolveConfig({}, file).gateway.href).toBe("http://studio-host.local:3000/")
+    expect(resolveConfig({ STUDIO_GATEWAY_URL: "http://10.0.0.5:3000" }, file).gateway.href).toBe(
+      "http://10.0.0.5:3000/",
+    )
+  })
+  it("ignores a malformed file and non-http URLs", () => {
+    expect(resolveConfig({}, "{oops").gateway.href).toBe("http://127.0.0.1:3000/")
+    expect(resolveConfig({}, '{"gatewayUrl":"file:///etc/passwd"}').gateway.href).toBe(
+      "http://127.0.0.1:3000/",
+    )
   })
 })

@@ -13,10 +13,12 @@
  * Not yet here: the `LocalEngine` seam (`node-llama-cpp` in a `utilityProcess`), the encrypted
  * SQLite cache, signing, notarization and auto-update; see the milestone-8 spike.
  */
+import { readFileSync } from "node:fs"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { app, BrowserWindow, protocol, session, shell } from "electron"
+import { resolveConfig } from "./config.ts"
 import { contentSecurityPolicy, inlineScriptHashes } from "./csp.ts"
 import { proxyToGateway } from "./proxy.ts"
 import { contentTypeFor, isGatewayPath, localInferencePath, staticFileFor } from "./routes.ts"
@@ -27,11 +29,18 @@ const SCHEME = "app"
 const HOST = "studio"
 const ORIGIN = `${SCHEME}://${HOST}`
 
-const { STUDIO_GATEWAY_URL, LOCAL_INFERENCE_URL, STUDIO_USER_DATA } = process.env
+const { STUDIO_USER_DATA } = process.env
 // A separate profile (session jar, cache) for tests and second accounts.
 if (STUDIO_USER_DATA) app.setPath("userData", STUDIO_USER_DATA)
-const gateway = new URL(STUDIO_GATEWAY_URL ?? "http://127.0.0.1:3000")
-const localInference = new URL(LOCAL_INFERENCE_URL ?? "http://127.0.0.1:8084")
+
+const readConfigFile = (): string | null => {
+  try {
+    return readFileSync(path.join(app.getPath("userData"), "config.json"), "utf8")
+  } catch {
+    return null
+  }
+}
+const { gateway, localInference } = resolveConfig(process.env, readConfigFile())
 const here = path.dirname(fileURLToPath(import.meta.url))
 const webRoot = app.isPackaged
   ? path.join(process.resourcesPath, "web")
