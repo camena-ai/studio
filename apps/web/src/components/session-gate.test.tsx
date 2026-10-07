@@ -25,7 +25,7 @@ const user = { id: "u1", email: "someone@example.test", name: "Someone" }
 describe("SessionGate", () => {
   it("asks a signed-out visitor to sign in", async () => {
     renderGate(null)
-    expect(await screen.findByRole("heading", { name: "Sign in to Studio" })).toBeTruthy()
+    expect(await screen.findByRole("heading", { name: "Sign in to Yel" })).toBeTruthy()
     expect(screen.queryByText("the app")).toBeNull()
   })
 

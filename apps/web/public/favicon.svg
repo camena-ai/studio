@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#3a2a1c" stroke-linecap="round" stroke-linejoin="round">
+  <title>Yel</title>
+  <style>@media (prefers-color-scheme: dark) { svg { stroke: #efe4cf } .fill { fill: #efe4cf } }</style>
+  <path d="M6 59.5c10-1.6 20-2 26-2s16 .4 26 2" stroke-width="2.4"/>
+  <path d="M23.5 58.5 26.5 27h11l3 31.5Z" stroke-width="3"/>
+  <path d="M24.5 27.4 32 18l7.5 9.4Z" stroke-width="2.6"/>
+  <g transform="rotate(20 32 23)"><path d="M32 23V3M32 23H52M32 23V43M32 23H12" stroke-width="2.6"/></g>
+  <circle class="fill" cx="32" cy="23" r="2.6" fill="#3a2a1c" stroke="none"/>
+</svg>

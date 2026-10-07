@@ -20,7 +20,9 @@ export {
 export type { ModelOption, ModelRoute } from "./components/model.ts"
 export { ModelChip, type ModelChipProps } from "./components/model-chip.tsx"
 export { PromptComposer, type PromptComposerProps } from "./components/prompt-composer.tsx"
-export { StudioMark } from "./components/studio-mark.tsx"
+export { KnightAvatar } from "./components/quixote/knight-avatar.tsx"
+export { LaManchaScene } from "./components/quixote/la-mancha-scene.tsx"
+export { Windmill, type WindmillProps, YelMark } from "./components/quixote/windmill.tsx"
 export {
   type ThemePreference,
   ThemeToggle,

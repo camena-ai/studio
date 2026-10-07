@@ -1,5 +1,5 @@
 import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react"
-import { StudioMark, ThemeToggle } from "@studio/ui"
+import { ThemeToggle, YelMark } from "@studio/ui"
 import { Button } from "@studio/ui/components/ui/button"
 import {
   Sidebar,
@@ -17,6 +17,7 @@ import {
 import { Link, useRouterState } from "@tanstack/react-router"
 import { AsyncResult } from "effect/unstable/reactivity"
 import { Cpu, LogOut, SquarePen } from "lucide-react"
+import { APP_NAME } from "../brand.ts"
 import { conversationsAtom } from "../state/conversations.ts"
 import { sessionAtom, signOutAtom } from "../state/session.ts"
 import { themePreferenceAtom } from "../state/theme.ts"
@@ -41,8 +42,8 @@ export function AppSidebar() {
     <Sidebar collapsible="offcanvas">
       <SidebarHeader className="titlebar-drag">
         <div className="flex items-center gap-2 px-1 py-1">
-          <StudioMark className="size-6" />
-          <span className="font-semibold">Studio</span>
+          <YelMark className="size-7 text-foreground" />
+          <span className="font-serif text-lg font-semibold">{APP_NAME}</span>
         </div>
       </SidebarHeader>
       <SidebarContent>

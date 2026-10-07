@@ -16,7 +16,7 @@ export function SessionGate({ children }: { readonly children: ReactNode }) {
     onInitial: () => <main className="min-h-svh flex-1" aria-busy="true" />,
     onFailure: () => (
       <main className="flex min-h-svh flex-1 flex-col items-center justify-center gap-4 px-4">
-        <p className="text-sm text-muted-foreground">Studio could not be reached.</p>
+        <p className="text-sm text-muted-foreground">Yel could not be reached.</p>
         <Button type="button" variant="outline" onClick={retry}>
           Try again
         </Button>
