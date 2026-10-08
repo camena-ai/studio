@@ -1,9 +1,11 @@
+import type { ConversationId } from "@camena-ai/contracts"
 import { useAtomValue } from "@effect/atom-react"
 import { AttachmentChip, KnightAvatar } from "@studio/ui"
 import { cn } from "@studio/ui/lib/utils"
 import { Ban, ShieldAlert, TriangleAlert } from "lucide-react"
 import { attachmentName, attachmentNamesAtom } from "../state/attachments.ts"
 import type { ChatMessage } from "../state/turn.ts"
+import { AgentWork } from "./agent-work.tsx"
 import { MessageContent } from "./message-content.tsx"
 
 /** A `classified` or `error` label is never hidden (§5.5); `clean` needs no badge. */
@@ -39,9 +41,11 @@ const errorText = (message: ChatMessage, refusal: string | undefined) => {
 function AssistantBody({
   message,
   refusal,
+  conversationId,
 }: {
   readonly message: ChatMessage
   readonly refusal: string | undefined
+  readonly conversationId: ConversationId | undefined
 }) {
   if (message.status === "blocked") {
     return (
@@ -54,6 +58,13 @@ function AssistantBody({
   }
   return (
     <>
+      {conversationId !== undefined && (
+        <AgentWork
+          conversationId={conversationId}
+          messageId={message.key}
+          running={message.status === "streaming"}
+        />
+      )}
       {message.content !== "" && (
         <MessageContent markdown={message.content} streaming={message.status === "streaming"} />
       )}
@@ -73,9 +84,12 @@ function AssistantBody({
 export function MessageList({
   messages,
   refusal,
+  conversationId,
 }: {
   readonly messages: ReadonlyArray<ChatMessage>
   readonly refusal?: string | undefined
+  /** Whose agent steps to show beside each answer. */
+  readonly conversationId?: ConversationId
 }) {
   const names = useAtomValue(attachmentNamesAtom)
   return (
@@ -109,7 +123,7 @@ export function MessageList({
               )}
             />
             <div className="flex min-w-0 flex-1 flex-col gap-2 font-serif text-[1.0625rem]">
-              <AssistantBody message={message} refusal={refusal} />
+              <AssistantBody message={message} refusal={refusal} conversationId={conversationId} />
               {message.modelId && message.status === "complete" && (
                 <span className="font-sans text-xs text-muted-foreground">{message.modelId}</span>
               )}
