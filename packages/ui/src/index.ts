@@ -13,6 +13,12 @@
  *   AGPL, GPL or branding-restricted project (D12, D20).
  */
 export {
+  type AgentCall,
+  type AgentStepArtifact,
+  AgentSteps,
+  type AgentStepsProps,
+} from "./components/agent-steps.tsx"
+export {
   AttachmentChip,
   type AttachmentChipProps,
   type AttachmentChipState,

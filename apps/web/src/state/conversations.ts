@@ -9,8 +9,10 @@
 import type { AttachmentId, ConversationId } from "@camena-ai/contracts"
 import { Effect, Stream } from "effect"
 import { Atom } from "effect/unstable/reactivity"
+import { STEP_EVENTS } from "../api/agent.ts"
 import { StudioApiClient } from "../api/studio-api.ts"
 import { newId } from "../lib/id.ts"
+import { stepsAtom } from "./steps.ts"
 import type { ChatAttachment } from "./turn.ts"
 import { beginTurn, foldTurn, type LiveTurn } from "./turn.ts"
 
@@ -87,6 +89,11 @@ export const sendTurnAtom = Atom.family((id: ConversationId) =>
           Stream.runForEach((event) =>
             Effect.sync(() => {
               if (event._tag === "start") settleFirstTurn()
+              // A tool step was written: this client's contracts predate the
+              // events, so it reads the record instead of their payload.
+              if (event._tag === "unknown" && STEP_EVENTS.has(event.event)) {
+                registry.refresh(stepsAtom(id))
+              }
               update((turn) => foldTurn(turn, event))
             }),
           ),
@@ -107,6 +114,7 @@ export const sendTurnAtom = Atom.family((id: ConversationId) =>
         )
       get.refresh(conversationAtom(id))
       get.refresh(conversationsAtom)
+      registry.refresh(stepsAtom(id))
     }),
   ),
 )

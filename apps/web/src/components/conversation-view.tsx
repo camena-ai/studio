@@ -57,7 +57,7 @@ export function ConversationView({ id }: { readonly id: ConversationId }) {
               This conversation could not be loaded.
             </p>
           )}
-          <MessageList messages={messages} refusal={live?.refusal} />
+          <MessageList messages={messages} refusal={live?.refusal} conversationId={id} />
           <div ref={bottom} />
         </div>
         <div className="mx-auto w-full max-w-2xl px-4 pb-6">
