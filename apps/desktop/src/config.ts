@@ -44,3 +44,32 @@ export const resolveConfig = (
       new URL(DEFAULT_LOCAL_INFERENCE),
   }
 }
+
+/** The folders the user granted the agent (`config.json`'s `localFolders`): absolute paths. */
+export const localFoldersOf = (file: string | null): ReadonlyArray<string> => {
+  if (file === null) return []
+  try {
+    const value: unknown = JSON.parse(file)
+    if (typeof value !== "object" || value === null) return []
+    const folders = (value as Record<string, unknown>)["localFolders"]
+    return Array.isArray(folders)
+      ? folders.filter(
+          (folder): folder is string => typeof folder === "string" && folder.startsWith("/"),
+        )
+      : []
+  } catch {
+    return []
+  }
+}
+
+/** `config.json`'s text with `localFolders` replaced, every other key kept. */
+export const withLocalFolders = (file: string | null, folders: ReadonlyArray<string>): string => {
+  let value: Record<string, unknown> = {}
+  if (file !== null) {
+    try {
+      const parsed: unknown = JSON.parse(file)
+      if (typeof parsed === "object" && parsed !== null) value = parsed as Record<string, unknown>
+    } catch {}
+  }
+  return `${JSON.stringify({ ...value, localFolders: [...new Set(folders)] }, null, 2)}\n`
+}

@@ -13,13 +13,15 @@
  * Not yet here: the `LocalEngine` seam (`node-llama-cpp` in a `utilityProcess`), the encrypted
  * SQLite cache, signing, notarization and auto-update; see the milestone-8 spike.
  */
-import { readFileSync } from "node:fs"
+import { readFileSync, writeFileSync } from "node:fs"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { app, BrowserWindow, protocol, session, shell } from "electron"
-import { resolveConfig } from "./config.ts"
+import { app, BrowserWindow, dialog, Menu, protocol, session, shell } from "electron"
+import { watchTurn } from "./agent-tools.ts"
+import { localFoldersOf, resolveConfig, withLocalFolders } from "./config.ts"
 import { contentSecurityPolicy, inlineScriptHashes } from "./csp.ts"
+import { rootsOf } from "./local-files.ts"
 import { proxyToGateway } from "./proxy.ts"
 import { contentTypeFor, isGatewayPath, localInferencePath, staticFileFor } from "./routes.ts"
 import { SessionJar } from "./session-jar.ts"
@@ -41,6 +43,56 @@ const readConfigFile = (): string | null => {
   }
 }
 const { gateway, localInference } = resolveConfig(process.env, readConfigFile())
+
+/** The folders the user granted the agent's local tools, kept in `config.json`. */
+let localFolders = localFoldersOf(readConfigFile())
+const saveLocalFolders = (folders: ReadonlyArray<string>) => {
+  localFolders = folders
+  writeFileSync(
+    path.join(app.getPath("userData"), "config.json"),
+    withLocalFolders(readConfigFile(), folders),
+  )
+  buildMenu()
+}
+
+/** The app menu, with Folders: grant a folder to the agent, see the grants, revoke them. */
+const buildMenu = () => {
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      { role: "appMenu" },
+      { role: "editMenu" },
+      { role: "viewMenu" },
+      {
+        label: "Folders",
+        submenu: [
+          {
+            label: "Grant Folder…",
+            click: async () => {
+              const picked = await dialog.showOpenDialog({
+                title: "Grant a folder to Yel's agent",
+                message:
+                  "Yel's agent may list, search and open the files in the folders you grant.",
+                properties: ["openDirectory", "multiSelections"],
+              })
+              if (!picked.canceled) saveLocalFolders([...localFolders, ...picked.filePaths])
+            },
+          },
+          { type: "separator" },
+          ...(localFolders.length === 0
+            ? [{ label: "No folders granted", enabled: false }]
+            : localFolders.map((folder) => ({ label: folder, enabled: false }))),
+          { type: "separator" },
+          {
+            label: "Revoke All Folders",
+            enabled: localFolders.length > 0,
+            click: () => saveLocalFolders([]),
+          },
+        ],
+      },
+      { role: "windowMenu" },
+    ]),
+  )
+}
 const here = path.dirname(fileURLToPath(import.meta.url))
 const webRoot = app.isPackaged
   ? path.join(process.resourcesPath, "web")
@@ -112,9 +164,20 @@ app.whenReady().then(() => {
     if (isGatewayPath(url.pathname)) {
       // Node's fetch, not `net.fetch`: Chromium's network stack keeps its own cookie store and
       // hides `Set-Cookie`, and the session must live in the jar only.
-      return proxyToGateway(request, { gateway, jar, onJarChange: persist }).catch(
-        () => new Response(null, { status: 503 }),
-      )
+      return proxyToGateway(request, {
+        gateway,
+        jar,
+        onJarChange: persist,
+        localTools: {
+          enabled: () => localFolders.length > 0,
+          watch: (conversationId, stream) => {
+            void watchTurn(stream, conversationId, () => rootsOf(localFolders), {
+              gateway,
+              cookie: () => jar.header(),
+            })
+          },
+        },
+      }).catch(() => new Response(null, { status: 503 }))
     }
     const control = localInferencePath(url.pathname)
     if (control !== null) {
@@ -128,6 +191,7 @@ app.whenReady().then(() => {
     return serveStatic(url.pathname)
   })
 
+  buildMenu()
   createWindow()
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
