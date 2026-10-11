@@ -31,6 +31,7 @@ import {
   removeCredentialAtom,
   saveConnectorAtom,
   saveCredentialAtom,
+  startOAuthAtom,
   testConnectorAtom,
 } from "../state/connectors.ts"
 import { TopBar } from "./top-bar.tsx"
@@ -183,8 +184,11 @@ function ConnectForm({
 function ConnectionCard({ connector }: { readonly connector: MemberConnector }) {
   const [connecting, setConnecting] = useAtom(connectingIdAtom)
   const disconnect = useAtomSet(removeCredentialAtom)
+  const [signIn, startSignIn] = useAtom(startOAuthAtom)
   const id = connector.id
   const personal = connector.auth === "personal" && id !== undefined
+  const oauth = connector.auth === "oauth" && id !== undefined
+  const own = personal || oauth
   return (
     <li className="flex flex-col gap-3 rounded-2xl border bg-card px-5 py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -195,7 +199,7 @@ function ConnectionCard({ connector }: { readonly connector: MemberConnector }) 
             {connector.connected ? (
               <Pill tone="ok">
                 <CircleCheck className="size-3" aria-hidden="true" />
-                {personal ? "Connected" : "Shared"}
+                {own ? "Connected" : "Shared"}
               </Pill>
             ) : (
               <Pill>
@@ -206,16 +210,27 @@ function ConnectionCard({ connector }: { readonly connector: MemberConnector }) 
           </div>
           <p className="text-sm text-muted-foreground">{connector.description}</p>
         </div>
-        {personal && (
+        {own && (
           <div className="flex gap-2">
             {connector.connected && <TestButton testKey={`me:${id}`} />}
-            <Button
-              variant={connector.connected ? "ghost" : "default"}
-              size="sm"
-              onClick={() => setConnecting(connecting === id ? null : id)}
-            >
-              {connector.connected ? "Update" : "Connect"}
-            </Button>
+            {oauth ? (
+              <Button
+                variant={connector.connected ? "ghost" : "default"}
+                size="sm"
+                disabled={AsyncResult.isWaiting(signIn)}
+                onClick={() => startSignIn(id)}
+              >
+                {connector.connected ? "Reconnect" : "Connect"}
+              </Button>
+            ) : (
+              <Button
+                variant={connector.connected ? "ghost" : "default"}
+                size="sm"
+                onClick={() => setConnecting(connecting === id ? null : id)}
+              >
+                {connector.connected ? "Update" : "Connect"}
+              </Button>
+            )}
             {connector.connected && (
               <Button variant="ghost" size="sm" onClick={() => disconnect(id)}>
                 Disconnect
@@ -225,7 +240,8 @@ function ConnectionCard({ connector }: { readonly connector: MemberConnector }) 
         )}
       </div>
       {personal && connecting === id && <ConnectForm connector={{ ...connector, id }} />}
-      {personal && <TestOutcome testKey={`me:${id}`} />}
+      {oauth && AsyncResult.isFailure(signIn) && <ErrorLine>{failureText(signIn.cause)}</ErrorLine>}
+      {own && <TestOutcome testKey={`me:${id}`} />}
     </li>
   )
 }
@@ -386,7 +402,12 @@ function ConnectorFormPanel({
               ["http", "Remote URL"],
               ["stdio", "Local command"],
             ]}
-            onChange={(transport) => set({ transport })}
+            onChange={(transport) =>
+              set({
+                transport,
+                ...(transport === "stdio" && form.auth === "oauth" ? { auth: "personal" } : {}),
+              })
+            }
           />
         </div>
       </div>
@@ -457,7 +478,10 @@ function ConnectorFormPanel({
         <Choice
           value={form.auth}
           options={[
-            ["personal", "Each person connects their own"],
+            ["personal", "Each person enters their own"],
+            ...(form.transport === "http"
+              ? [["oauth", "Each person signs in (OAuth)"] as const]
+              : []),
             ["shared", "One for everyone"],
           ]}
           onChange={(auth) => set({ auth })}
@@ -465,34 +489,67 @@ function ConnectorFormPanel({
         <span className="text-xs text-muted-foreground">
           {form.auth === "personal"
             ? "Each member enters their own values, so the service sees who is asking and applies their permissions."
-            : "You enter the values once, and everyone's chats use them."}
+            : form.auth === "oauth"
+              ? "Each member clicks Connect and signs in at the service, so it sees who is asking and applies their permissions. Most services need nothing else here."
+              : "You enter the values once, and everyone's chats use them."}
         </span>
-        {form.fields.map((field, index) => (
-          <FieldRow
-            key={index}
-            field={field}
-            transport={form.transport}
-            onChange={(next) => setField(index, next)}
-            onRemove={() => set({ fields: form.fields.filter((_, i) => i !== index) })}
-          />
-        ))}
-        <div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              set({
-                fields: [
-                  ...form.fields,
-                  { key: "", label: "", in: form.transport === "stdio" ? "env" : "header" },
-                ],
-              })
-            }
-          >
-            <Plus /> Add field
-          </Button>
-        </div>
+        {form.auth === "oauth" && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field
+              small
+              label={`Client ID at the service (optional${stored?.oauthClientId ? `; now ${stored.oauthClientId}` : ""})`}
+              hint="Only for a service that doesn't let apps register themselves."
+            >
+              {(id) => (
+                <Input
+                  id={id}
+                  value={form.oauthClientId}
+                  onChange={(e) => set({ oauthClientId: e.target.value })}
+                />
+              )}
+            </Field>
+            <Field small label="Client secret (optional)">
+              {(id) => (
+                <Input
+                  id={id}
+                  type="password"
+                  autoComplete="off"
+                  value={form.oauthClientSecret}
+                  onChange={(e) => set({ oauthClientSecret: e.target.value })}
+                />
+              )}
+            </Field>
+          </div>
+        )}
+        {form.auth !== "oauth" &&
+          form.fields.map((field, index) => (
+            <FieldRow
+              key={index}
+              field={field}
+              transport={form.transport}
+              onChange={(next) => setField(index, next)}
+              onRemove={() => set({ fields: form.fields.filter((_, i) => i !== index) })}
+            />
+          ))}
+        {form.auth !== "oauth" && (
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                set({
+                  fields: [
+                    ...form.fields,
+                    { key: "", label: "", in: form.transport === "stdio" ? "env" : "header" },
+                  ],
+                })
+              }
+            >
+              <Plus /> Add field
+            </Button>
+          </div>
+        )}
         {form.auth === "shared" &&
           form.fields
             .filter((field) => field.key.trim() !== "")
@@ -544,7 +601,13 @@ function OrgConnectorRow({ connector }: { readonly connector: AdminConnector }) 
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{connector.name}</span>
             <Pill>{connector.spec.transport === "stdio" ? "Local" : "Remote"}</Pill>
-            <Pill>{connector.auth === "personal" ? "Each person's own" : "Shared"}</Pill>
+            <Pill>
+              {connector.auth === "personal"
+                ? "Each person's own"
+                : connector.auth === "oauth"
+                  ? "Each person signs in"
+                  : "Shared"}
+            </Pill>
           </div>
           <p className="text-sm text-muted-foreground">{connector.description}</p>
         </div>
@@ -623,6 +686,39 @@ export function ManageConnectors() {
   )
 }
 
+/**
+ * What a service's sign-in ended with (#361): the gateway sends the browser back here with
+ * `?connected=<name>` or `?oauth_error=<code>`.
+ */
+export function SignInOutcome({
+  search = globalThis.location?.search ?? "",
+}: {
+  readonly search?: string
+}) {
+  const params = new URLSearchParams(search)
+  const connected = params.get("connected")
+  const error = params.get("oauth_error")
+  if (connected !== null && connected !== "") {
+    return (
+      <p
+        role="status"
+        className="flex items-center gap-2 rounded-xl bg-emerald-500/10 px-4 py-2 text-sm text-emerald-700 dark:text-emerald-300"
+      >
+        <CircleCheck className="size-4" aria-hidden="true" />
+        Connected to {connected}.
+      </p>
+    )
+  }
+  if (error !== null) {
+    return (
+      <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-2 text-sm text-destructive">
+        {describeError(error)}
+      </p>
+    )
+  }
+  return null
+}
+
 /** `/connectors`: the data sources the assistant can use, and your own access to them. */
 export function ConnectorsPage() {
   const mine = useAtomValue(myConnectorsAtom)
@@ -647,6 +743,7 @@ export function ConnectorsPage() {
               connect your own account, so you only ever see what you are allowed to see.
             </p>
           </header>
+          <SignInOutcome />
           {off ? (
             <p className="text-sm text-muted-foreground">{describeError("not_enabled")}</p>
           ) : (

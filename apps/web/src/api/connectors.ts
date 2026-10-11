@@ -32,7 +32,7 @@ export const ConnectorSpec = Schema.Union([
 ])
 export type ConnectorSpec = typeof ConnectorSpec.Type
 
-export const ConnectorAuth = Schema.Literals(["shared", "personal"])
+export const ConnectorAuth = Schema.Literals(["shared", "personal", "oauth"])
 export type ConnectorAuth = typeof ConnectorAuth.Type
 
 export const MemberConnector = Schema.Struct({
@@ -55,6 +55,7 @@ export const AdminConnector = Schema.Struct({
   fields: Schema.Array(ConnectorField),
   spec: ConnectorSpec,
   sharedSet: Schema.Array(Schema.String),
+  oauthClientId: Schema.optionalKey(Schema.NullOr(Schema.String)),
   createdAt: Schema.String,
   updatedAt: Schema.String,
 })
@@ -101,6 +102,8 @@ export interface ConnectorDraft {
   readonly spec: ConnectorSpec
   /** A shared connector's values; an empty one clears a stored value on update. */
   readonly secrets?: Readonly<Record<string, string>>
+  /** An OAuth connector's own client at the service, when the service needs one registered. */
+  readonly oauthClient?: { readonly clientId: string; readonly clientSecret?: string }
 }
 
 const request = async (path: string, init: { method?: string; body?: unknown } = {}) => {
@@ -139,6 +142,18 @@ export const removeMyCredential = (id: string) =>
 
 export const testMyConnector = async (id: string) =>
   decode(ConnectorTestResult)(await request(`/v1/connectors/${id}/test`, { body: {} }))
+
+/**
+ * Starts an OAuth connector's sign-in: the service's sign-in page, which sends the browser back to
+ * this app's Connectors page when done.
+ */
+export const startOAuth = async (id: string) => {
+  const body = (await request(`/v1/connectors/${id}/oauth/start`, {
+    body: { returnTo: window.location.origin },
+  })) as { authorizationUrl?: unknown }
+  if (typeof body.authorizationUrl !== "string") throw new ConnectorApiError(0, undefined)
+  return body.authorizationUrl
+}
 
 export const listOrgConnectors = async () =>
   decode(AdminList)(await request("/v1/admin/connectors"))
@@ -180,6 +195,22 @@ export const describeError = (code: string | undefined): string => {
       return "Could not reach the server. Check the command or URL and the credentials."
     case "timeout":
       return "The server did not answer in time."
+    case "oauth_not_allowed":
+      return "Signing in with the service is not turned on for your organization."
+    case "not_oauth":
+      return "This connector doesn't use sign-in with the service."
+    case "untrusted_return":
+      return "This address of the app isn't set up for signing in. Ask your administrator."
+    case "discovery_failed":
+      return "The service didn't say how to sign in. Check the server URL."
+    case "registration_failed":
+      return "The service didn't accept Studio as an app. An owner can add the service's client ID in the connector's settings."
+    case "invalid_state":
+      return "That sign-in expired or wasn't yours. Try connecting again."
+    case "exchange_failed":
+      return "The service didn't finish the sign-in. Try again."
+    case "denied":
+      return "The sign-in was cancelled."
     case "connector_not_found":
       return "This connector no longer exists."
     default:

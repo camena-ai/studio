@@ -19,6 +19,7 @@ import {
   removeConnector,
   removeMyCredential,
   saveMyCredential,
+  startOAuth,
   testMyConnector,
   testOrgConnector,
   updateConnector,
@@ -70,6 +71,9 @@ export interface ConnectorForm {
   readonly fields: ReadonlyArray<ConnectorField>
   /** A shared connector's values by field key; an empty one keeps (on edit) or leaves unset. */
   readonly secrets: Readonly<Record<string, string>>
+  /** An OAuth connector's own client at the service, when given. */
+  readonly oauthClientId: string
+  readonly oauthClientSecret: string
 }
 
 export const EMPTY_FORM: ConnectorForm = {
@@ -83,6 +87,8 @@ export const EMPTY_FORM: ConnectorForm = {
   auth: "personal",
   fields: [{ key: "Authorization", label: "API token", in: "header", prefix: "Bearer " }],
   secrets: {},
+  oauthClientId: "",
+  oauthClientSecret: "",
 }
 
 /** Non-empty lines, trimmed. */
@@ -112,7 +118,8 @@ export const pairsText = (record: Readonly<Record<string, string>> | undefined):
  */
 export const draftOf = (form: ConnectorForm, editing: boolean): ConnectorDraft => {
   const fixed = pairsOf(form.fixed)
-  const fields = form.fields.map((field) => ({
+  const oauth = form.auth === "oauth"
+  const fields = (oauth ? [] : form.fields).map((field) => ({
     key: field.key.trim(),
     label: field.label.trim(),
     in: form.transport === "stdio" ? ("env" as const) : field.in,
@@ -142,6 +149,14 @@ export const draftOf = (form: ConnectorForm, editing: boolean): ConnectorDraft =
             ...(Object.keys(fixed).length === 0 ? {} : { headers: fixed }),
           },
     ...(form.auth === "shared" && Object.keys(typed).length > 0 ? { secrets: typed } : {}),
+    ...(oauth && form.oauthClientId.trim() !== ""
+      ? {
+          oauthClient: {
+            clientId: form.oauthClientId.trim(),
+            ...(form.oauthClientSecret === "" ? {} : { clientSecret: form.oauthClientSecret }),
+          },
+        }
+      : {}),
   }
 }
 
@@ -159,6 +174,8 @@ export const formOf = (connector: AdminConnector): ConnectorForm => ({
   auth: connector.auth,
   fields: connector.fields,
   secrets: {},
+  oauthClientId: "",
+  oauthClientSecret: "",
 })
 
 /** A name the gateway takes: lower-case, starting with a letter, at most 24 characters. */
@@ -224,6 +241,14 @@ export const saveCredentialAtom = Atom.fn(
     get.set(credentialDraftAtom(input.id), {})
     get.set(connectingIdAtom, null)
     get.refresh(myConnectorsAtom)
+  }),
+)
+
+/** Sends the browser to an OAuth connector's sign-in at the service. */
+export const startOAuthAtom = Atom.fn(
+  Effect.fnUntraced(function* (id: string) {
+    const url = yield* attempt(() => startOAuth(id))
+    window.location.assign(url)
   }),
 )
 
