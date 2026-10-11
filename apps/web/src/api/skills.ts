@@ -20,6 +20,7 @@ export const SkillSummary = Schema.Struct({
   fileCount: Schema.Number,
   license: Schema.optionalKey(Schema.String),
   compatibility: Schema.optionalKey(Schema.String),
+  roleIds: Schema.optionalKey(Schema.NullOr(Schema.Array(Schema.String))),
   updatedAt: Schema.NullOr(Schema.String),
 })
 export type SkillSummary = typeof SkillSummary.Type
@@ -85,8 +86,11 @@ export const updateSkillMd = async (name: string, content: string) =>
     await json(await request(`${path(name)}/skill-md`, { method: "PUT", body: { content } })),
   )
 
-export const setSkillEnabled = (name: string, enabled: boolean) =>
-  request(path(name), { method: "PATCH", body: { enabled } }).then(() => undefined)
+/** Turns a skill on or off, or sets the roles it is for (null for every role). */
+export const updateSkill = (
+  name: string,
+  change: { readonly enabled?: boolean; readonly roleIds?: ReadonlyArray<string> | null },
+) => request(path(name), { method: "PATCH", body: change }).then(() => undefined)
 
 export const removeSkill = (name: string) =>
   request(path(name), { method: "DELETE" }).then(() => undefined)
@@ -144,6 +148,10 @@ export const describeSkillError = (code: string | undefined): string => {
       return "That name belongs to a built-in skill. Pick another name."
     case "name_changed":
       return "The name in SKILL.md can't change. Install it as a new skill instead."
+    case "unknown_roles":
+      return "One of the chosen roles no longer exists. Reload and choose again."
+    case "role_access_not_enabled":
+      return "Limiting skills to roles is not turned on for your organization."
     case "skill_not_found":
       return "This skill no longer exists."
     default:

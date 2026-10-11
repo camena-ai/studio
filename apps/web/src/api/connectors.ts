@@ -56,6 +56,7 @@ export const AdminConnector = Schema.Struct({
   spec: ConnectorSpec,
   sharedSet: Schema.Array(Schema.String),
   oauthClientId: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  roleIds: Schema.optionalKey(Schema.NullOr(Schema.Array(Schema.String))),
   createdAt: Schema.String,
   updatedAt: Schema.String,
 })
@@ -104,6 +105,8 @@ export interface ConnectorDraft {
   readonly secrets?: Readonly<Record<string, string>>
   /** An OAuth connector's own client at the service, when the service needs one registered. */
   readonly oauthClient?: { readonly clientId: string; readonly clientSecret?: string }
+  /** The roles it is for; null for every role. */
+  readonly roleIds?: ReadonlyArray<string> | null
 }
 
 const request = async (path: string, init: { method?: string; body?: unknown } = {}) => {
@@ -211,6 +214,10 @@ export const describeError = (code: string | undefined): string => {
       return "The service didn't finish the sign-in. Try again."
     case "denied":
       return "The sign-in was cancelled."
+    case "unknown_roles":
+      return "One of the chosen roles no longer exists. Reload and choose again."
+    case "role_access_not_enabled":
+      return "Limiting connectors to roles is not turned on for your organization."
     case "connector_not_found":
       return "This connector no longer exists."
     default:

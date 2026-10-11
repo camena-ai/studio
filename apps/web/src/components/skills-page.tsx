@@ -19,10 +19,12 @@ import {
   removeSkillAtom,
   saveSkillMdAtom,
   setSkillEnabledAtom,
+  setSkillRolesAtom,
   skillDetailAtom,
   skillMdDraftAtom,
   skillsAtom,
 } from "../state/skills.ts"
+import { RolePicker } from "./role-picker.tsx"
 import { TopBar } from "./top-bar.tsx"
 
 const failureText = (cause: Cause.Cause<unknown>) => {
@@ -149,6 +151,20 @@ export function AddSkill() {
   )
 }
 
+/** Who may use a skill: everyone, or the chosen roles. */
+function SkillRoles({ skill }: { readonly skill: SkillSummary }) {
+  const [changed, setRoles] = useAtom(setSkillRolesAtom)
+  return (
+    <div className="flex flex-col gap-1">
+      <RolePicker
+        value={skill.roleIds ?? null}
+        onChange={(roleIds) => setRoles({ name: skill.name, roleIds })}
+      />
+      {AsyncResult.isFailure(changed) && <ErrorLine>{failureText(changed.cause)}</ErrorLine>}
+    </div>
+  )
+}
+
 /** An owner's view of one skill's files, with its SKILL.md to edit. */
 function SkillDetailPanel({ skill }: { readonly skill: SkillSummary }) {
   const detail = useAtomValue(skillDetailAtom(skill.name))
@@ -192,6 +208,7 @@ function SkillDetailPanel({ skill }: { readonly skill: SkillSummary }) {
           </span>
         )}
       </div>
+      <SkillRoles skill={skill} />
       {AsyncResult.isFailure(saved) && <ErrorLine>{failureText(saved.cause)}</ErrorLine>}
       {!builtin && (
         <div className="flex gap-2">
@@ -227,6 +244,7 @@ function SkillCard({ skill, owner }: { readonly skill: SkillSummary; readonly ow
             <span className="font-medium">{skill.name}</span>
             <Pill>{SOURCE_LABEL[skill.source]}</Pill>
             {skill.enabled ? <Pill tone="ok">On</Pill> : <Pill>Off</Pill>}
+            {skill.roleIds !== null && skill.roleIds !== undefined && <Pill>Some roles</Pill>}
             {skill.license !== undefined && <Pill>{skill.license}</Pill>}
           </div>
           <p className="text-sm text-muted-foreground">{skill.description}</p>
