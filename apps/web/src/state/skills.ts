@@ -7,14 +7,18 @@
 import { Effect } from "effect"
 import { Atom } from "effect/unstable/reactivity"
 import {
+  clearGitHubToken,
   downloadSkill,
+  getGitHubToken,
   getSkill,
   type InstallSource,
   installSkill,
   listSkills,
+  refreshSkill,
   removeSkill,
   SkillApiError,
   type SkillScope,
+  saveGitHubToken,
   updateSkill,
   updateSkillMd,
 } from "../api/skills.ts"
@@ -122,6 +126,39 @@ export const removeSkillAtom = Atom.fn(
     yield* attempt(() => removeSkill(input.scope, input.name))
     if (get(openSkillAtom) === skillKey(input.scope, input.name)) get.set(openSkillAtom, null)
     get.refresh(skillsAtom)
+  }),
+)
+
+/** Downloads a skill installed from GitHub again. */
+export const refreshSkillAtom = Atom.fn(
+  Effect.fnUntraced(function* (input: { readonly scope: SkillScope; readonly name: string }, get) {
+    const key = skillKey(input.scope, input.name)
+    const refreshed = yield* attempt(() => refreshSkill(input.scope, input.name))
+    get.set(skillMdDraftAtom(key), null)
+    get.refresh(skillDetailAtom(key))
+    get.refresh(skillsAtom)
+    return refreshed
+  }),
+)
+
+/** Owners: whether the org has a GitHub token for private repositories. */
+export const gitHubTokenAtom = Atom.make(attempt(getGitHubToken)).pipe(Atom.keepAlive)
+
+/** The token being typed; cleared once saved. */
+export const gitHubTokenDraftAtom: Atom.Writable<string> = Atom.make("").pipe(Atom.keepAlive)
+
+export const saveGitHubTokenAtom = Atom.fn(
+  Effect.fnUntraced(function* (token: string, get) {
+    yield* attempt(() => saveGitHubToken(token))
+    get.set(gitHubTokenDraftAtom, "")
+    get.refresh(gitHubTokenAtom)
+  }),
+)
+
+export const clearGitHubTokenAtom = Atom.fn(
+  Effect.fnUntraced(function* (_: void, get) {
+    yield* attempt(clearGitHubToken)
+    get.refresh(gitHubTokenAtom)
   }),
 )
 

@@ -3,7 +3,9 @@
  * open Agent Skills format (agentskills.io), so a skill made for another assistant installs here.
  * Everyone lists them under `/v1/skills`; owners install, edit, turn on or off, download and remove
  * the org's under `/v1/admin/skills`, and where the org allows it any member does the same with
- * skills of their own under `/v1/skills/mine`, which only they see and use.
+ * skills of their own under `/v1/skills/mine`, which only they see and use. Where the org allows it,
+ * a skill installed from GitHub can be downloaded again, and owners save a GitHub token the org's
+ * installs use for private repositories.
  *
  * TODO(contracts): the published `@camena-ai/contracts` this app pins (0.17) predates these
  * endpoints, so their schemas are mirrored here from the public contract and fetched directly.
@@ -39,7 +41,15 @@ const SkillList = Schema.Struct({
   skills: Schema.Array(SkillSummary),
   /** Whether the reader may keep skills of their own. */
   personalSkills: Schema.optionalKey(Schema.Boolean),
+  /** Whether a skill from GitHub can be downloaded again, and owners may save a token. */
+  githubSkills: Schema.optionalKey(Schema.Boolean),
 })
+
+export const GitHubTokenStatus = Schema.Struct({
+  set: Schema.Boolean,
+  updatedAt: Schema.NullOr(Schema.String),
+})
+export type GitHubTokenStatus = typeof GitHubTokenStatus.Type
 
 /** Whose skills a call acts on: the org's (owners) or the reader's own. */
 export type SkillScope = "org" | "personal"
@@ -82,7 +92,11 @@ const path = (scope: SkillScope, name: string) => `${base(scope)}/${encodeURICom
 
 export const listSkills = async () => {
   const list = Schema.decodeUnknownSync(SkillList)(await json(await request("/v1/skills")))
-  return { skills: list.skills, personalSkills: list.personalSkills ?? false }
+  return {
+    skills: list.skills,
+    personalSkills: list.personalSkills ?? false,
+    githubSkills: list.githubSkills ?? false,
+  }
 }
 
 /** Exactly one of `archive` (base64) and `url`. */
@@ -121,6 +135,24 @@ export const downloadSkill = async (scope: SkillScope, name: string): Promise<Bl
   new Blob([await (await request(`${path(scope, name)}/archive`)).arrayBuffer()], {
     type: "application/zip",
   })
+
+/** Downloads a skill installed from GitHub again, from the link it came from. */
+export const refreshSkill = async (scope: SkillScope, name: string) =>
+  Schema.decodeUnknownSync(SkillSummary)(
+    await json(await request(`${path(scope, name)}/refresh`, { method: "POST" })),
+  )
+
+const TOKEN_PATH = "/v1/admin/skill-settings/github-token"
+
+/** Whether the org has a GitHub token for private skills; the token itself is never read back. */
+export const getGitHubToken = async () =>
+  Schema.decodeUnknownSync(GitHubTokenStatus)(await json(await request(TOKEN_PATH)))
+
+export const saveGitHubToken = (token: string) =>
+  request(TOKEN_PATH, { method: "PUT", body: { token } }).then(() => undefined)
+
+export const clearGitHubToken = () =>
+  request(TOKEN_PATH, { method: "DELETE" }).then(() => undefined)
 
 /** A file's bytes as base64, for an install's `archive`. */
 export const base64Of = async (file: Blob): Promise<string> => {
@@ -164,7 +196,7 @@ export const describeSkillError = (code: string | undefined): string => {
     case "not_github":
       return "Paste a public github.com link to a repository or a folder in it."
     case "fetch_failed":
-      return "Could not download from GitHub. Check that the repository is public and the link is right."
+      return "Could not download from GitHub. Check the link, and that the repository is public or an owner saved a token that can read it."
     case "reserved_name":
       return "That name belongs to a built-in skill. Pick another name."
     case "name_changed":
@@ -173,6 +205,12 @@ export const describeSkillError = (code: string | undefined): string => {
       return "One of the chosen roles no longer exists. Reload and choose again."
     case "role_access_not_enabled":
       return "Limiting skills to roles is not turned on for your organization."
+    case "github_access_denied":
+      return "GitHub refused the saved token for this repository. Check the token can read it."
+    case "invalid_token":
+      return "That doesn't look like a GitHub token. Paste the whole token."
+    case "not_from_github":
+      return "Only skills installed from GitHub can be updated this way."
     case "skill_not_found":
       return "This skill no longer exists."
     default:
