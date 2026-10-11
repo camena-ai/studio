@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConnectorsRouteImport } from './routes/connectors'
 import { Route as InferenceRouteImport } from './routes/inference'
+import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as CConversationIdRouteImport } from './routes/c.$conversationId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const InferenceRoute = InferenceRouteImport.update({
   path: '/inference',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SkillsRoute = SkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CConversationIdRoute = CConversationIdRouteImport.update({
   id: '/c/$conversationId',
   path: '/c/$conversationId',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
   '/inference': typeof InferenceRoute
+  '/skills': typeof SkillsRoute
   '/c/$conversationId': typeof CConversationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
   '/inference': typeof InferenceRoute
+  '/skills': typeof SkillsRoute
   '/c/$conversationId': typeof CConversationIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,29 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/connectors': typeof ConnectorsRoute
   '/inference': typeof InferenceRoute
+  '/skills': typeof SkillsRoute
   '/c/$conversationId': typeof CConversationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/connectors' | '/inference' | '/c/$conversationId'
+  fullPaths:
+    '/' | '/connectors' | '/inference' | '/skills' | '/c/$conversationId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/connectors' | '/inference' | '/c/$conversationId'
-  id: '__root__' | '/' | '/connectors' | '/inference' | '/c/$conversationId'
+  to: '/' | '/connectors' | '/inference' | '/skills' | '/c/$conversationId'
+  id:
+    | '__root__'
+    | '/'
+    | '/connectors'
+    | '/inference'
+    | '/skills'
+    | '/c/$conversationId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConnectorsRoute: typeof ConnectorsRoute
   InferenceRoute: typeof InferenceRoute
+  SkillsRoute: typeof SkillsRoute
   CConversationIdRoute: typeof CConversationIdRoute
 }
 
@@ -92,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/skills': {
+      id: '/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof SkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/c/$conversationId': {
       id: '/c/$conversationId'
       path: '/c/$conversationId'
@@ -106,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConnectorsRoute: ConnectorsRoute,
   InferenceRoute: InferenceRoute,
+  SkillsRoute: SkillsRoute,
   CConversationIdRoute: CConversationIdRoute,
 }
 export const routeTree = rootRouteImport

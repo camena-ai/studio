@@ -16,7 +16,7 @@ import {
 } from "@studio/ui/components/ui/sidebar"
 import { Link, useRouterState } from "@tanstack/react-router"
 import { AsyncResult } from "effect/unstable/reactivity"
-import { Cpu, LogOut, Plug, SquarePen } from "lucide-react"
+import { BookOpen, Cpu, LogOut, Plug, SquarePen } from "lucide-react"
 import { APP_NAME } from "../brand.ts"
 import { conversationsAtom } from "../state/conversations.ts"
 import { sessionAtom, signOutAtom } from "../state/session.ts"
@@ -38,6 +38,9 @@ export function AppSidebar() {
   const onConnectors = useRouterState({
     select: (state) => state.location.pathname === "/connectors",
   })
+  const onSkills = useRouterState({
+    select: (state) => state.location.pathname === "/skills",
+  })
   const activeId = useRouterState({
     select: (state) => (state.location.pathname.match(/^\/c\/([^/]+)/) ?? [])[1],
   })
@@ -56,7 +59,7 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={activeId === undefined && !onInference && !onConnectors}
+                  isActive={activeId === undefined && !onInference && !onConnectors && !onSkills}
                 >
                   <Link to="/">
                     <SquarePen />
@@ -69,6 +72,14 @@ export function AppSidebar() {
                   <Link to="/connectors">
                     <Plug />
                     <span>Connectors</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={onSkills}>
+                  <Link to="/skills">
+                    <BookOpen />
+                    <span>Skills</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
