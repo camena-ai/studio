@@ -74,6 +74,8 @@ export interface ConnectorForm {
   /** An OAuth connector's own client at the service, when given. */
   readonly oauthClientId: string
   readonly oauthClientSecret: string
+  /** The roles it is for; null for every role. */
+  readonly roleIds: ReadonlyArray<string> | null
 }
 
 export const EMPTY_FORM: ConnectorForm = {
@@ -89,6 +91,7 @@ export const EMPTY_FORM: ConnectorForm = {
   secrets: {},
   oauthClientId: "",
   oauthClientSecret: "",
+  roleIds: null,
 }
 
 /** Non-empty lines, trimmed. */
@@ -149,6 +152,8 @@ export const draftOf = (form: ConnectorForm, editing: boolean): ConnectorDraft =
             ...(Object.keys(fixed).length === 0 ? {} : { headers: fixed }),
           },
     ...(form.auth === "shared" && Object.keys(typed).length > 0 ? { secrets: typed } : {}),
+    // On an edit the list is always sent, so clearing it to everyone sticks.
+    ...(editing || form.roleIds !== null ? { roleIds: form.roleIds } : {}),
     ...(oauth && form.oauthClientId.trim() !== ""
       ? {
           oauthClient: {
@@ -176,6 +181,7 @@ export const formOf = (connector: AdminConnector): ConnectorForm => ({
   secrets: {},
   oauthClientId: "",
   oauthClientSecret: "",
+  roleIds: connector.roleIds ?? null,
 })
 
 /** A name the gateway takes: lower-case, starting with a letter, at most 24 characters. */

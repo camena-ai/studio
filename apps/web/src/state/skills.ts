@@ -12,7 +12,7 @@ import {
   listSkills,
   removeSkill,
   SkillApiError,
-  setSkillEnabled,
+  updateSkill,
   updateSkillMd,
 } from "../api/skills.ts"
 import { StudioApiClient } from "../api/studio-api.ts"
@@ -77,7 +77,18 @@ export const saveSkillMdAtom = Atom.fn(
 
 export const setSkillEnabledAtom = Atom.fn(
   Effect.fnUntraced(function* (input: { readonly name: string; readonly enabled: boolean }, get) {
-    yield* attempt(() => setSkillEnabled(input.name, input.enabled))
+    yield* attempt(() => updateSkill(input.name, { enabled: input.enabled }))
+    get.refresh(skillsAtom)
+  }),
+)
+
+/** Sets the roles a skill is for, null for every role. */
+export const setSkillRolesAtom = Atom.fn(
+  Effect.fnUntraced(function* (
+    input: { readonly name: string; readonly roleIds: ReadonlyArray<string> | null },
+    get,
+  ) {
+    yield* attempt(() => updateSkill(input.name, { roleIds: input.roleIds }))
     get.refresh(skillsAtom)
   }),
 )

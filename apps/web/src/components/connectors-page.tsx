@@ -34,6 +34,7 @@ import {
   startOAuthAtom,
   testConnectorAtom,
 } from "../state/connectors.ts"
+import { RolePicker } from "./role-picker.tsx"
 import { TopBar } from "./top-bar.tsx"
 
 /** The refusal's words, from an `AsyncResult` failure. */
@@ -573,6 +574,7 @@ function ConnectorFormPanel({
               </Field>
             ))}
       </div>
+      <RolePicker value={form.roleIds} onChange={(roleIds) => set({ roleIds })} />
       {AsyncResult.isFailure(saved) && <ErrorLine>{failureText(saved.cause)}</ErrorLine>}
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={AsyncResult.isWaiting(saved)}>
@@ -601,6 +603,9 @@ function OrgConnectorRow({ connector }: { readonly connector: AdminConnector }) 
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{connector.name}</span>
             <Pill>{connector.spec.transport === "stdio" ? "Local" : "Remote"}</Pill>
+            {connector.roleIds !== null && connector.roleIds !== undefined && (
+              <Pill>Some roles</Pill>
+            )}
             <Pill>
               {connector.auth === "personal"
                 ? "Each person's own"

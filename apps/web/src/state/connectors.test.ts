@@ -104,4 +104,10 @@ describe("the connector form", () => {
     const withClient = draftOf({ ...base, oauthClientId: " app-1 ", oauthClientSecret: "s" }, false)
     expect(withClient.oauthClient).toEqual({ clientId: "app-1", clientSecret: "s" })
   })
+
+  it("sends roles on create only when chosen, and always on edit so clearing them sticks", () => {
+    expect(draftOf(EMPTY_FORM, false)).not.toHaveProperty("roleIds")
+    expect(draftOf({ ...EMPTY_FORM, roleIds: ["r-1"] }, false).roleIds).toEqual(["r-1"])
+    expect(draftOf({ ...EMPTY_FORM, roleIds: null }, true).roleIds).toBeNull()
+  })
 })
