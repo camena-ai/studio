@@ -7,7 +7,14 @@ import { Cause } from "effect"
 import { AsyncResult } from "effect/unstable/reactivity"
 import { BookOpen, Download, FileUp, Link2, Trash2 } from "lucide-react"
 import { type ReactNode, useId } from "react"
-import { base64Of, describeSkillError, SkillApiError, type SkillSummary } from "../api/skills.ts"
+import {
+  base64Of,
+  describeSkillError,
+  SkillApiError,
+  type SkillScope,
+  type SkillSummary,
+  scopeOf,
+} from "../api/skills.ts"
 import {
   downloadSkillAtom,
   formatSize,
@@ -21,6 +28,7 @@ import {
   setSkillEnabledAtom,
   setSkillRolesAtom,
   skillDetailAtom,
+  skillKey,
   skillMdDraftAtom,
   skillsAtom,
 } from "../state/skills.ts"
@@ -67,20 +75,23 @@ const SOURCE_LABEL: Record<SkillSummary["source"], string> = {
   github: "From GitHub",
 }
 
-/** Owners: add a skill from a file or a GitHub link. */
-export function AddSkill() {
-  const [installed, install] = useAtom(installSkillAtom)
-  const [url, setUrl] = useAtom(githubUrlAtom)
-  const pending = useAtomValue(pendingReplaceAtom)
+/** Add a skill from a file or a GitHub link: to the org's (owners) or to the reader's own. */
+export function AddSkill({ scope }: { readonly scope: SkillScope }) {
+  const [installed, install] = useAtom(installSkillAtom(scope))
+  const [url, setUrl] = useAtom(githubUrlAtom(scope))
+  const pending = useAtomValue(pendingReplaceAtom(scope))
   const fileId = useId()
   const urlId = useId()
   const busy = AsyncResult.isWaiting(installed)
   return (
     <section className="flex flex-col gap-3 rounded-2xl border bg-card px-5 py-4">
-      <h2 className="font-semibold">Add a skill</h2>
+      <h2 className="font-semibold">
+        {scope === "org" ? "Add a skill for everyone" : "Add a skill of your own"}
+      </h2>
       <p className="text-sm text-muted-foreground">
         A skill is a folder with a SKILL.md, the format Claude, Codex, Gemini CLI and Cursor use.
         Upload it as a .zip or .skill file, or paste a link to it on GitHub.
+        {scope === "personal" && " Only you see it, and only your chats use it."}
       </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex flex-col gap-1 text-sm">
@@ -165,10 +176,12 @@ function SkillRoles({ skill }: { readonly skill: SkillSummary }) {
   )
 }
 
-/** An owner's view of one skill's files, with its SKILL.md to edit. */
+/** One skill's files, with its SKILL.md to edit, for whoever manages it. */
 function SkillDetailPanel({ skill }: { readonly skill: SkillSummary }) {
-  const detail = useAtomValue(skillDetailAtom(skill.name))
-  const [draft, setDraft] = useAtom(skillMdDraftAtom(skill.name))
+  const scope = scopeOf(skill)
+  const key = skillKey(scope, skill.name)
+  const detail = useAtomValue(skillDetailAtom(key))
+  const [draft, setDraft] = useAtom(skillMdDraftAtom(key))
   const [saved, save] = useAtom(saveSkillMdAtom)
   const editorId = useId()
   if (AsyncResult.isFailure(detail)) return <ErrorLine>{failureText(detail.cause)}</ErrorLine>
@@ -208,14 +221,14 @@ function SkillDetailPanel({ skill }: { readonly skill: SkillSummary }) {
           </span>
         )}
       </div>
-      <SkillRoles skill={skill} />
+      {scope === "org" && <SkillRoles skill={skill} />}
       {AsyncResult.isFailure(saved) && <ErrorLine>{failureText(saved.cause)}</ErrorLine>}
       {!builtin && (
         <div className="flex gap-2">
           <Button
             size="sm"
             disabled={draft === null || AsyncResult.isWaiting(saved)}
-            onClick={() => save({ name: skill.name, content: text })}
+            onClick={() => save({ scope, name: skill.name, content: text })}
           >
             Save SKILL.md
           </Button>
@@ -230,12 +243,24 @@ function SkillDetailPanel({ skill }: { readonly skill: SkillSummary }) {
   )
 }
 
-function SkillCard({ skill, owner }: { readonly skill: SkillSummary; readonly owner: boolean }) {
+function SkillCard({
+  skill,
+  manage,
+  replaced = false,
+}: {
+  readonly skill: SkillSummary
+  /** Whether the reader may change it: an owner for the org's, anyone for their own. */
+  readonly manage: boolean
+  /** An org skill the reader's own skill of its name takes the place of. */
+  readonly replaced?: boolean
+}) {
   const [open, setOpen] = useAtom(openSkillAtom)
   const [toggled, toggle] = useAtom(setSkillEnabledAtom)
   const [removed, remove] = useAtom(removeSkillAtom)
   const download = useAtomSet(downloadSkillAtom)
-  const isOpen = open === skill.name
+  const scope = scopeOf(skill)
+  const key = skillKey(scope, skill.name)
+  const isOpen = open === key
   return (
     <li className="flex flex-col gap-3 rounded-2xl border bg-card px-5 py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -244,6 +269,7 @@ function SkillCard({ skill, owner }: { readonly skill: SkillSummary; readonly ow
             <span className="font-medium">{skill.name}</span>
             <Pill>{SOURCE_LABEL[skill.source]}</Pill>
             {skill.enabled ? <Pill tone="ok">On</Pill> : <Pill>Off</Pill>}
+            {replaced && <Pill>Yours is used instead</Pill>}
             {skill.roleIds !== null && skill.roleIds !== undefined && <Pill>Some roles</Pill>}
             {skill.license !== undefined && <Pill>{skill.license}</Pill>}
           </div>
@@ -261,24 +287,24 @@ function SkillCard({ skill, owner }: { readonly skill: SkillSummary; readonly ow
             )}
           </p>
         </div>
-        {owner && (
+        {manage && (
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
               disabled={AsyncResult.isWaiting(toggled)}
-              onClick={() => toggle({ name: skill.name, enabled: !skill.enabled })}
+              onClick={() => toggle({ scope, name: skill.name, enabled: !skill.enabled })}
             >
               {skill.enabled ? "Turn off" : "Turn on"}
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setOpen(isOpen ? null : skill.name)}>
+            <Button variant="ghost" size="sm" onClick={() => setOpen(isOpen ? null : key)}>
               {isOpen ? "Close" : skill.source === "builtin" ? "View" : "View and edit"}
             </Button>
             <Button
               variant="ghost"
               size="icon-sm"
               aria-label={`Download ${skill.name}`}
-              onClick={() => download(skill.name)}
+              onClick={() => download({ scope, name: skill.name })}
             >
               <Download />
             </Button>
@@ -289,7 +315,7 @@ function SkillCard({ skill, owner }: { readonly skill: SkillSummary; readonly ow
                 aria-label={`Remove ${skill.name}`}
                 onClick={() => {
                   if (window.confirm(`Remove ${skill.name}? The assistant stops using it.`)) {
-                    remove(skill.name)
+                    remove({ scope, name: skill.name })
                   }
                 }}
               >
@@ -301,12 +327,37 @@ function SkillCard({ skill, owner }: { readonly skill: SkillSummary; readonly ow
       </div>
       {AsyncResult.isFailure(toggled) && <ErrorLine>{failureText(toggled.cause)}</ErrorLine>}
       {AsyncResult.isFailure(removed) && <ErrorLine>{failureText(removed.cause)}</ErrorLine>}
-      {owner && isOpen && <SkillDetailPanel skill={skill} />}
+      {manage && isOpen && <SkillDetailPanel skill={skill} />}
     </li>
   )
 }
 
-/** The org's skills; owners also add and manage them. */
+/** The reader's own skills, where the org allows them. */
+function MySkills({ skills }: { readonly skills: ReadonlyArray<SkillSummary> }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold">My skills</h2>
+        <p className="text-sm text-muted-foreground">
+          Only you see these, and only your chats use them. If one has the same name as an
+          organization skill, yours is used instead.
+        </p>
+      </div>
+      <AddSkill scope="personal" />
+      {skills.length === 0 ? (
+        <p className="text-sm text-muted-foreground">You haven't added any skills yet.</p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {skills.map((skill) => (
+            <SkillCard key={skillKey("personal", skill.name)} skill={skill} manage />
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+/** The org's skills, which owners add and manage, and the reader's own. */
 export function SkillsList() {
   const result = useAtomValue(skillsAtom)
   const me = useAtomValue(meAtom)
@@ -314,14 +365,23 @@ export function SkillsList() {
   if (AsyncResult.isFailure(result)) return <ErrorLine>{failureText(result.cause)}</ErrorLine>
   if (!AsyncResult.isSuccess(result))
     return <p className="text-sm text-muted-foreground">Loading…</p>
+  const org = result.value.skills.filter((skill) => scopeOf(skill) === "org")
+  const mine = result.value.skills.filter((skill) => scopeOf(skill) === "personal")
+  const mineOn = new Set(mine.filter((skill) => skill.enabled).map((skill) => skill.name))
   return (
-    <div className="flex flex-col gap-6">
-      {owner && <AddSkill />}
+    <div className="flex flex-col gap-8">
+      {result.value.personalSkills && <MySkills skills={mine} />}
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Your organization's skills</h2>
+        {owner && <AddSkill scope="org" />}
         <ul className="flex flex-col gap-3">
-          {result.value.map((skill) => (
-            <SkillCard key={skill.name} skill={skill} owner={owner} />
+          {org.map((skill) => (
+            <SkillCard
+              key={skillKey("org", skill.name)}
+              skill={skill}
+              manage={owner}
+              replaced={mineOn.has(skill.name)}
+            />
           ))}
         </ul>
       </section>

@@ -82,7 +82,8 @@ describe("Skills", () => {
     expect(await screen.findByText("finance-timeseries")).toBeTruthy()
     expect(screen.getByText("Built-in")).toBeTruthy()
     expect(screen.getByText("From GitHub")).toBeTruthy()
-    await waitFor(() => expect(screen.queryByText("Add a skill")).toBeNull())
+    await waitFor(() => expect(screen.queryByText("Add a skill for everyone")).toBeNull())
+    expect(screen.queryByText("My skills")).toBeNull()
     expect(screen.queryByRole("button", { name: "Turn off" })).toBeNull()
   })
 
@@ -100,7 +101,7 @@ describe("Skills", () => {
         return Response.json(dataCheck, { status: 201 })
       },
     })
-    expect(await screen.findByText("Add a skill")).toBeTruthy()
+    expect(await screen.findByText("Add a skill for everyone")).toBeTruthy()
     fireEvent.change(screen.getByLabelText("From GitHub"), {
       target: { value: "https://github.com/acme/skills/tree/main/data-check" },
     })
@@ -129,6 +130,43 @@ describe("Skills", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Turn off" }))
     expect(await screen.findByRole("button", { name: "Turn on" })).toBeTruthy()
     expect(calls.find((call) => call.method === "PATCH")?.body).toEqual({ enabled: false })
+  })
+
+  it("lets a member add, see and remove a skill of their own", async () => {
+    let mine: ReadonlyArray<unknown> = []
+    const calls = renderWith({
+      "GET /v1/skills": () =>
+        Response.json({
+          personalSkills: true,
+          skills: [{ ...dataCheck, scope: "org" }, ...mine],
+        }),
+      "GET /v1/me": () => Response.json(me("member")),
+      "POST /v1/skills/mine": () => {
+        mine = [{ ...dataCheck, source: "upload", sourceUrl: null, scope: "personal" }]
+        return Response.json(mine[0], { status: 201 })
+      },
+      "DELETE /v1/skills/mine/data-check": () => {
+        mine = []
+        return new Response(null, { status: 204 })
+      },
+    })
+    expect(await screen.findByText("My skills")).toBeTruthy()
+    expect(screen.getByText("You haven't added any skills yet.")).toBeTruthy()
+    expect(screen.queryByText("Add a skill for everyone")).toBeNull()
+    fireEvent.change(screen.getByLabelText("From GitHub"), {
+      target: { value: "https://github.com/me/skills/tree/main/data-check" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: /Install/ }))
+    expect(await screen.findByText("Installed data-check.")).toBeTruthy()
+    // The org's copy says the member's own is used instead, and only theirs can be managed.
+    expect(await screen.findByText("Yours is used instead")).toBeTruthy()
+    vi.stubGlobal("confirm", () => true)
+    fireEvent.click(screen.getByRole("button", { name: "Remove data-check" }))
+    expect(await screen.findByText("You haven't added any skills yet.")).toBeTruthy()
+    expect(calls.filter((call) => call.method !== "GET").map((call) => call.url)).toEqual([
+      "/v1/skills/mine",
+      "/v1/skills/mine/data-check",
+    ])
   })
 
   it("says so when skills are off for the organization", async () => {

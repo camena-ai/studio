@@ -2,7 +2,8 @@
  * Skills: tested instructions and helper scripts the assistant loads for a kind of task, in the
  * open Agent Skills format (agentskills.io), so a skill made for another assistant installs here.
  * Everyone lists them under `/v1/skills`; owners install, edit, turn on or off, download and remove
- * them under `/v1/admin/skills`.
+ * the org's under `/v1/admin/skills`, and where the org allows it any member does the same with
+ * skills of their own under `/v1/skills/mine`, which only they see and use.
  *
  * TODO(contracts): the published `@camena-ai/contracts` this app pins (0.17) predates these
  * endpoints, so their schemas are mirrored here from the public contract and fetched directly.
@@ -22,6 +23,8 @@ export const SkillSummary = Schema.Struct({
   compatibility: Schema.optionalKey(Schema.String),
   roleIds: Schema.optionalKey(Schema.NullOr(Schema.Array(Schema.String))),
   updatedAt: Schema.NullOr(Schema.String),
+  /** The org's, or the reader's own. Absent from older gateways, which have only the org's. */
+  scope: Schema.optionalKey(Schema.Literals(["org", "personal"])),
 })
 export type SkillSummary = typeof SkillSummary.Type
 
@@ -32,7 +35,16 @@ export const SkillDetail = Schema.Struct({
 })
 export type SkillDetail = typeof SkillDetail.Type
 
-const SkillList = Schema.Struct({ skills: Schema.Array(SkillSummary) })
+const SkillList = Schema.Struct({
+  skills: Schema.Array(SkillSummary),
+  /** Whether the reader may keep skills of their own. */
+  personalSkills: Schema.optionalKey(Schema.Boolean),
+})
+
+/** Whose skills a call acts on: the org's (owners) or the reader's own. */
+export type SkillScope = "org" | "personal"
+
+export const scopeOf = (skill: SkillSummary): SkillScope => skill.scope ?? "org"
 
 /** What a skills request was refused with: its status and the gateway's code, when one came. */
 export class SkillApiError extends Error {
@@ -65,39 +77,48 @@ const request = async (path: string, init: { method?: string; body?: unknown } =
 const json = async (response: Response) =>
   response.status === 204 ? undefined : ((await response.json()) as unknown)
 
-const path = (name: string) => `/v1/admin/skills/${encodeURIComponent(name)}`
+const base = (scope: SkillScope) => (scope === "org" ? "/v1/admin/skills" : "/v1/skills/mine")
+const path = (scope: SkillScope, name: string) => `${base(scope)}/${encodeURIComponent(name)}`
 
-export const listSkills = async () =>
-  Schema.decodeUnknownSync(SkillList)(await json(await request("/v1/skills"))).skills
+export const listSkills = async () => {
+  const list = Schema.decodeUnknownSync(SkillList)(await json(await request("/v1/skills")))
+  return { skills: list.skills, personalSkills: list.personalSkills ?? false }
+}
 
 /** Exactly one of `archive` (base64) and `url`. */
 export type InstallSource = { readonly archive: string } | { readonly url: string }
 
-export const installSkill = async (source: InstallSource, replace = false) =>
+export const installSkill = async (scope: SkillScope, source: InstallSource, replace = false) =>
   Schema.decodeUnknownSync(SkillSummary)(
-    await json(await request("/v1/admin/skills", { body: { ...source, replace } })),
+    await json(await request(base(scope), { body: { ...source, replace } })),
   )
 
-export const getSkill = async (name: string) =>
-  Schema.decodeUnknownSync(SkillDetail)(await json(await request(path(name))))
+export const getSkill = async (scope: SkillScope, name: string) =>
+  Schema.decodeUnknownSync(SkillDetail)(await json(await request(path(scope, name))))
 
-export const updateSkillMd = async (name: string, content: string) =>
+export const updateSkillMd = async (scope: SkillScope, name: string, content: string) =>
   Schema.decodeUnknownSync(SkillSummary)(
-    await json(await request(`${path(name)}/skill-md`, { method: "PUT", body: { content } })),
+    await json(
+      await request(`${path(scope, name)}/skill-md`, { method: "PUT", body: { content } }),
+    ),
   )
 
-/** Turns a skill on or off, or sets the roles it is for (null for every role). */
+/**
+ * Turns a skill on or off, or sets the roles it is for (null for every role). Roles apply to the
+ * org's skills only.
+ */
 export const updateSkill = (
+  scope: SkillScope,
   name: string,
   change: { readonly enabled?: boolean; readonly roleIds?: ReadonlyArray<string> | null },
-) => request(path(name), { method: "PATCH", body: change }).then(() => undefined)
+) => request(path(scope, name), { method: "PATCH", body: change }).then(() => undefined)
 
-export const removeSkill = (name: string) =>
-  request(path(name), { method: "DELETE" }).then(() => undefined)
+export const removeSkill = (scope: SkillScope, name: string) =>
+  request(path(scope, name), { method: "DELETE" }).then(() => undefined)
 
 /** The skill as a zip: one folder named after it. */
-export const downloadSkill = async (name: string): Promise<Blob> =>
-  new Blob([await (await request(`${path(name)}/archive`)).arrayBuffer()], {
+export const downloadSkill = async (scope: SkillScope, name: string): Promise<Blob> =>
+  new Blob([await (await request(`${path(scope, name)}/archive`)).arrayBuffer()], {
     type: "application/zip",
   })
 
