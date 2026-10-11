@@ -169,6 +169,47 @@ describe("Skills", () => {
     ])
   })
 
+  it("lets an owner save a GitHub token and update a skill from GitHub", async () => {
+    let tokenSet = false
+    const calls = renderWith({
+      "GET /v1/skills": () =>
+        Response.json({ githubSkills: true, skills: [{ ...dataCheck, scope: "org" }] }),
+      "GET /v1/me": () => Response.json(me("owner")),
+      "GET /v1/admin/skill-settings/github-token": () =>
+        Response.json({ set: tokenSet, updatedAt: tokenSet ? "2026-10-11T00:00:00Z" : null }),
+      "PUT /v1/admin/skill-settings/github-token": () => {
+        tokenSet = true
+        return new Response(null, { status: 204 })
+      },
+      "POST /v1/admin/skills/data-check/refresh": () =>
+        Response.json({ ...dataCheck, scope: "org" }),
+    })
+    expect(await screen.findByText(/No token saved/)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText("GitHub token"), {
+      target: { value: "github_pat_example_0000000000" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Save token" }))
+    expect(await screen.findByText(/A token is saved/)).toBeTruthy()
+    fireEvent.click(screen.getByRole("button", { name: /Update from GitHub/ }))
+    expect(await screen.findByText("Updated from GitHub.")).toBeTruthy()
+    expect(
+      calls.filter((call) => call.method !== "GET").map((call) => [call.method, call.body]),
+    ).toEqual([
+      ["PUT", { token: "github_pat_example_0000000000" }],
+      ["POST", undefined],
+    ])
+  })
+
+  it("offers no GitHub update or token where the gateway does not", async () => {
+    renderWith({
+      "GET /v1/skills": () => Response.json({ skills: [dataCheck] }),
+      "GET /v1/me": () => Response.json(me("owner")),
+    })
+    expect(await screen.findByText("data-check")).toBeTruthy()
+    expect(screen.queryByText("Private repositories")).toBeNull()
+    expect(screen.queryByRole("button", { name: /Update from GitHub/ })).toBeNull()
+  })
+
   it("says so when skills are off for the organization", async () => {
     renderWith({
       "GET /v1/skills": () => Response.json({ code: "not_enabled" }, { status: 404 }),

@@ -5,7 +5,7 @@ import { Textarea } from "@studio/ui/components/ui/textarea"
 import { cn } from "@studio/ui/lib/utils"
 import { Cause } from "effect"
 import { AsyncResult } from "effect/unstable/reactivity"
-import { BookOpen, Download, FileUp, Link2, Trash2 } from "lucide-react"
+import { BookOpen, Download, FileUp, KeyRound, Link2, RefreshCw, Trash2 } from "lucide-react"
 import { type ReactNode, useId } from "react"
 import {
   base64Of,
@@ -16,14 +16,19 @@ import {
   scopeOf,
 } from "../api/skills.ts"
 import {
+  clearGitHubTokenAtom,
   downloadSkillAtom,
   formatSize,
+  gitHubTokenAtom,
+  gitHubTokenDraftAtom,
   githubUrlAtom,
   installSkillAtom,
   meAtom,
   openSkillAtom,
   pendingReplaceAtom,
+  refreshSkillAtom,
   removeSkillAtom,
+  saveGitHubTokenAtom,
   saveSkillMdAtom,
   setSkillEnabledAtom,
   setSkillRolesAtom,
@@ -162,6 +167,85 @@ export function AddSkill({ scope }: { readonly scope: SkillScope }) {
   )
 }
 
+/** Owners: the GitHub token the organization's installs use for private repositories. */
+function GitHubAccess() {
+  const status = useAtomValue(gitHubTokenAtom)
+  const [draft, setDraft] = useAtom(gitHubTokenDraftAtom)
+  const [saved, save] = useAtom(saveGitHubTokenAtom)
+  const [cleared, clear] = useAtom(clearGitHubTokenAtom)
+  const tokenId = useId()
+  if (!AsyncResult.isSuccess(status)) return null
+  const busy = AsyncResult.isWaiting(saved) || AsyncResult.isWaiting(cleared)
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border bg-card px-5 py-4">
+      <h3 className="flex items-center gap-2 font-semibold">
+        <KeyRound className="size-4" aria-hidden="true" />
+        Private repositories
+      </h3>
+      <p className="text-sm text-muted-foreground">
+        To install skills from private GitHub repositories, save a fine-grained token with read
+        access to their contents. It's only used to download your organization's skills, and
+        members' own skills never use it.
+      </p>
+      <p className="text-sm">
+        {status.value.set ? (
+          <>
+            A token is saved
+            {status.value.updatedAt !== null &&
+              ` (since ${new Date(status.value.updatedAt).toLocaleDateString()})`}
+            .
+          </>
+        ) : (
+          "No token saved. Only public repositories can be installed."
+        )}
+      </p>
+      <form
+        className="flex flex-col gap-1 text-sm"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (draft.trim() !== "") save(draft.trim())
+        }}
+      >
+        <label htmlFor={tokenId} className="font-medium">
+          {status.value.set ? "Replace the token" : "GitHub token"}
+        </label>
+        <div className="flex gap-2">
+          <Input
+            id={tokenId}
+            type="password"
+            autoComplete="off"
+            value={draft}
+            placeholder="github_pat_…"
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          <Button type="submit" size="sm" disabled={busy || draft.trim() === ""}>
+            Save token
+          </Button>
+          {status.value.set && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => {
+                if (
+                  window.confirm("Remove the token? Private skills can't be updated without it.")
+                ) {
+                  clear()
+                }
+              }}
+            >
+              Remove
+            </Button>
+          )}
+        </div>
+      </form>
+      {AsyncResult.isFailure(saved) && <ErrorLine>{failureText(saved.cause)}</ErrorLine>}
+      {AsyncResult.isFailure(cleared) && <ErrorLine>{failureText(cleared.cause)}</ErrorLine>}
+    </section>
+  )
+}
+
 /** Who may use a skill: everyone, or the chosen roles. */
 function SkillRoles({ skill }: { readonly skill: SkillSummary }) {
   const [changed, setRoles] = useAtom(setSkillRolesAtom)
@@ -247,16 +331,20 @@ function SkillCard({
   skill,
   manage,
   replaced = false,
+  github = false,
 }: {
   readonly skill: SkillSummary
   /** Whether the reader may change it: an owner for the org's, anyone for their own. */
   readonly manage: boolean
   /** An org skill the reader's own skill of its name takes the place of. */
   readonly replaced?: boolean
+  /** Whether a skill from GitHub can be downloaded again. */
+  readonly github?: boolean
 }) {
   const [open, setOpen] = useAtom(openSkillAtom)
   const [toggled, toggle] = useAtom(setSkillEnabledAtom)
   const [removed, remove] = useAtom(removeSkillAtom)
+  const [refreshed, refresh] = useAtom(refreshSkillAtom)
   const download = useAtomSet(downloadSkillAtom)
   const scope = scopeOf(skill)
   const key = skillKey(scope, skill.name)
@@ -300,6 +388,16 @@ function SkillCard({
             <Button variant="ghost" size="sm" onClick={() => setOpen(isOpen ? null : key)}>
               {isOpen ? "Close" : skill.source === "builtin" ? "View" : "View and edit"}
             </Button>
+            {github && skill.source === "github" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={AsyncResult.isWaiting(refreshed)}
+                onClick={() => refresh({ scope, name: skill.name })}
+              >
+                <RefreshCw /> Update from GitHub
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon-sm"
@@ -327,13 +425,23 @@ function SkillCard({
       </div>
       {AsyncResult.isFailure(toggled) && <ErrorLine>{failureText(toggled.cause)}</ErrorLine>}
       {AsyncResult.isFailure(removed) && <ErrorLine>{failureText(removed.cause)}</ErrorLine>}
+      {AsyncResult.isFailure(refreshed) && <ErrorLine>{failureText(refreshed.cause)}</ErrorLine>}
+      {AsyncResult.isSuccess(refreshed) && refreshed.value.name === skill.name && (
+        <p className="text-sm text-emerald-700 dark:text-emerald-300">Updated from GitHub.</p>
+      )}
       {manage && isOpen && <SkillDetailPanel skill={skill} />}
     </li>
   )
 }
 
 /** The reader's own skills, where the org allows them. */
-function MySkills({ skills }: { readonly skills: ReadonlyArray<SkillSummary> }) {
+function MySkills({
+  skills,
+  github,
+}: {
+  readonly skills: ReadonlyArray<SkillSummary>
+  readonly github: boolean
+}) {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
@@ -349,7 +457,12 @@ function MySkills({ skills }: { readonly skills: ReadonlyArray<SkillSummary> }) 
       ) : (
         <ul className="flex flex-col gap-3">
           {skills.map((skill) => (
-            <SkillCard key={skillKey("personal", skill.name)} skill={skill} manage />
+            <SkillCard
+              key={skillKey("personal", skill.name)}
+              skill={skill}
+              manage
+              github={github}
+            />
           ))}
         </ul>
       )}
@@ -370,10 +483,11 @@ export function SkillsList() {
   const mineOn = new Set(mine.filter((skill) => skill.enabled).map((skill) => skill.name))
   return (
     <div className="flex flex-col gap-8">
-      {result.value.personalSkills && <MySkills skills={mine} />}
+      {result.value.personalSkills && <MySkills skills={mine} github={result.value.githubSkills} />}
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Your organization's skills</h2>
         {owner && <AddSkill scope="org" />}
+        {owner && result.value.githubSkills && <GitHubAccess />}
         <ul className="flex flex-col gap-3">
           {org.map((skill) => (
             <SkillCard
@@ -381,6 +495,7 @@ export function SkillsList() {
               skill={skill}
               manage={owner}
               replaced={mineOn.has(skill.name)}
+              github={result.value.githubSkills}
             />
           ))}
         </ul>
