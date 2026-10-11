@@ -89,4 +89,19 @@ describe("the connector form", () => {
       secrets: {},
     })
   })
+
+  it("builds an OAuth connector with no fields, and its client only when one is typed", () => {
+    const base = {
+      ...EMPTY_FORM,
+      name: "tracker",
+      url: "https://mcp.example/mcp",
+      auth: "oauth" as const,
+    }
+    const plain = draftOf(base, false)
+    expect(plain.fields).toEqual([])
+    expect(plain.oauthClient).toBeUndefined()
+    expect(plain.secrets).toBeUndefined()
+    const withClient = draftOf({ ...base, oauthClientId: " app-1 ", oauthClientSecret: "s" }, false)
+    expect(withClient.oauthClient).toEqual({ clientId: "app-1", clientSecret: "s" })
+  })
 })

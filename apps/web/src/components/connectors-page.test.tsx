@@ -1,7 +1,7 @@
 import { RegistryProvider } from "@effect/atom-react"
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { ManageConnectors, MyConnections } from "./connectors-page.tsx"
+import { ManageConnectors, MyConnections, SignInOutcome } from "./connectors-page.tsx"
 
 interface Call {
   readonly url: string
@@ -149,5 +149,35 @@ describe("Manage connectors", () => {
       auth: "personal",
       spec: { transport: "http", url: "https://crm.example/mcp" },
     })
+  })
+})
+
+describe("signing in with a service", () => {
+  it("starts the sign-in for an OAuth connector, coming back to this app", async () => {
+    const calls = stubGateway({
+      "GET /v1/connectors": () =>
+        Response.json({ connectors: [{ ...crm, auth: "oauth", fields: [] }] }),
+      "POST /v1/connectors/c1/oauth/start": () =>
+        Response.json({ authorizationUrl: "https://service.example/authorize?x=1" }),
+    })
+    render(
+      <RegistryProvider>
+        <MyConnections />
+      </RegistryProvider>,
+    )
+    fireEvent.click(await screen.findByRole("button", { name: "Connect" }))
+    await waitFor(() => expect(calls.some((call) => call.method === "POST")).toBe(true))
+    expect(calls.find((call) => call.method === "POST")?.body).toEqual({
+      returnTo: window.location.origin,
+    })
+  })
+
+  it("says how the sign-in ended", () => {
+    const { rerender } = render(<SignInOutcome search="?connected=tracker" />)
+    expect(screen.getByRole("status").textContent).toContain("Connected to tracker.")
+    rerender(<SignInOutcome search="?oauth_error=invalid_state" />)
+    expect(screen.getByRole("alert").textContent).toContain("expired or wasn't yours")
+    rerender(<SignInOutcome search="" />)
+    expect(screen.queryByRole("alert")).toBeNull()
   })
 })
