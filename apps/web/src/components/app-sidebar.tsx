@@ -16,7 +16,7 @@ import {
 } from "@studio/ui/components/ui/sidebar"
 import { Link, useRouterState } from "@tanstack/react-router"
 import { AsyncResult } from "effect/unstable/reactivity"
-import { Cpu, LogOut, SquarePen } from "lucide-react"
+import { Cpu, LogOut, Plug, SquarePen } from "lucide-react"
 import { APP_NAME } from "../brand.ts"
 import { conversationsAtom } from "../state/conversations.ts"
 import { sessionAtom, signOutAtom } from "../state/session.ts"
@@ -35,6 +35,9 @@ export function AppSidebar() {
   const onInference = useRouterState({
     select: (state) => state.location.pathname === "/inference",
   })
+  const onConnectors = useRouterState({
+    select: (state) => state.location.pathname === "/connectors",
+  })
   const activeId = useRouterState({
     select: (state) => (state.location.pathname.match(/^\/c\/([^/]+)/) ?? [])[1],
   })
@@ -51,10 +54,21 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={activeId === undefined && !onInference}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={activeId === undefined && !onInference && !onConnectors}
+                >
                   <Link to="/">
                     <SquarePen />
                     <span>New chat</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={onConnectors}>
+                  <Link to="/connectors">
+                    <Plug />
+                    <span>Connectors</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
